@@ -23,6 +23,9 @@
 #define LEA "lea"
 #define NOP "nop"
 
+FILE* infile = NULL;
+FILE* outfile = NULL;
+
 int isOpcode(char *ptr)
 	{	
 		
@@ -87,3 +90,33 @@ int readAndParse( FILE * pInfile, char * pLine, char ** pLabel, char
 
 	   return( OK );
 	}
+
+int main(int argc, char* argv[]) {
+	if (argc != 4) { 
+		printf("Incorrect number of arguments (found %d, expected 3)\n", (argc - 1));
+		exit(1);
+	}
+
+//	char* prgName = argv[1];
+//	char* iFileName = argv[2];
+//	char* oFileName = argv[3];
+//
+//	printf("program name = '%s'\n", prgName);
+//	printf("i/o files are '%s' input and '%s' output", iFileName, oFileName);
+
+	infile = fopen(argv[2], "r");
+	outfile = fopen(argv[3],"w");
+
+	if (!infile) {
+		printf("Error: Cannot open file %s\n", argv[2]);
+		exit(4);
+	}
+
+	if (!outfile) {
+		printf("Error: Cannot open file %s\n", argv[3]);
+		exit(4);
+	}
+
+	fclose(infile);
+	fclose(outfile);
+}
