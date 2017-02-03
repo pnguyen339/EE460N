@@ -9,12 +9,12 @@ FILE* infile = NULL;
 FILE* outfile = NULL;
 
 enum code{
-		ADD, AND,
-		BR,BRNZP,BRNP,BRNZ,BRZP,BRN,BRP,BRZ,
-		HALT, JMP, JSR, JSRR, LDB, LDW,
-		LEA, NOP, NOT, RET, 
-		LSHF, RSHFL, RSHFA, 
-		RTI, STB, STW, TRAP, XOR
+		ADD=1, AND=5,
+		BR =0,
+		HALT=15, JMP=12, JSR=4, JSRR=4, LDB=2, LDW=6,
+		LEA=14, NOP=0, NOT=9, RET=12, 
+		LSHF=13, RSHFL=13, RSHFA=13, 
+		RTI, STB=3, STW=7, TRAP=15, XOR=9
 	};
 
 int findOpcode(char *ptr){
