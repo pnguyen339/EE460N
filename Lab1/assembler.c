@@ -175,7 +175,32 @@ int readAndParse( FILE * pInfile, char * pLine, char ** pLabel, char
 
 	   return( OK );
 	}
-void Add(FILE *pOutfile, char *A1, char *A2,char *A3, char *A4) 
+void Add(FILE *pOutfile, char *A1, char *A2,char *A3, char *A4){
+
+}
+
+void setSymbol(FILE *pInfile, symbol* ptr, int* len){
+	int line = 0;
+	char *pline;
+	char *Opcode;
+	char *Label=NULL;
+	char *Arg1;
+	char *Arg2;
+	char *Arg3;
+	char *Arg4;
+	while(readAndParse( pInfile, pLine, &*pLabel, &*Opcode, &*Arg1,  &*Arg2, &*Arg3, &*Arg4) !=DONE){
+		if(*Label!=NULL){
+			if(findSym(ptr,*len,Label) == -1){
+				newSymbol(ptr,len,Label,n);
+				
+			}
+			else{
+				
+			}
+		} 
+
+	}
+} 
 int main(int argc, char* argv[]) {
 	char *Opcode;
 	char *Label;
@@ -183,6 +208,8 @@ int main(int argc, char* argv[]) {
 	char *Arg2;
 	char *Arg3;
 	char *Arg4;
+	symbol* Table= NULL;
+	int length = 0;
 	if (argv != 4) { 
 		printf("Incorrect number of arguments (found %d, expected 3)\n", (argc - 1));
 		exit(4);
