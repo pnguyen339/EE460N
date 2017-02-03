@@ -150,7 +150,10 @@ int readAndParse( FILE * pInfile, char * pLine, char ** pLabel, char
 	   if( isOpcode( lPtr ) == -1 && lPtr[0] != '.' ) /* found a label */
 	   {
 		*pLabel = lPtr;
-		if( !( lPtr = strtok( NULL, "\t\n ," ) ) ) return( OK );
+		if( !( lPtr = strtok( NULL, "\t\n ," ) ) ) {
+			printf("Invalid opcode: %s", pLabel);
+			exit(2);
+		}
 	   }
 	   
            *pOpcode = lPtr;
@@ -172,9 +175,15 @@ int readAndParse( FILE * pInfile, char * pLine, char ** pLabel, char
 
 	   return( OK );
 	}
-
+void Add(FILE *pOutfile, char *A1, char *A2,char *A3, char *A4) 
 int main(int argc, char* argv[]) {
-	if (argc != 4) { 
+	char *Opcode;
+	char *Label;
+	char *Arg1;
+	char *Arg2;
+	char *Arg3;
+	char *Arg4;
+	if (argv != 4) { 
 		printf("Incorrect number of arguments (found %d, expected 3)\n", (argc - 1));
 		exit(4);
 	}
