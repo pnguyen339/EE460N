@@ -8,7 +8,31 @@
 FILE* infile = NULL;
 FILE* outfile = NULL;
 
-enum code{
+int toNume(char* pStr) {
+	int num;
+	long lnum;
+
+	if (*pStr == '#') {					/* base 10 */
+		pStr++;
+		lnum = strtol(pStr, NULL, 10);
+	}
+	else if (*pStr == "x") {			/* base 16 */
+		pStr++;
+		lnum = strtol(pStr, NULL, 16);
+	}
+	else {
+		printf("Error: invalid operand, %s\n", pStr);
+		exit(4);
+	}
+
+	if (lnum > INT_MAX) { lnum = INT_MAX; } /* saturation on int max and min */
+	else if (lnum < INT_MIN) { lnum = INT_MIN; }
+
+	num = (int) lnum;					/* cast and return */
+	return num;
+}
+
+enum code {
 		ADD=1, AND=5,
 		BR =0,
 		HALT=15, JMP=12, JSR=4, JSRR=4, LDB=2, LDW=6,
@@ -17,69 +41,69 @@ enum code{
 		RTI, STB=3, STW=7, TRAP=15, XOR=9
 	};
 
-int findOpcode(char *ptr){
+int findOpcode(char *ptr) {
 
-	if(strcmp(ptr,"add") == 0){
+	if(strcmp(ptr,"add") == 0) {
 		return ADD;
 	}
-	else if(strcmp(ptr,"and") == 0){
+	else if(strcmp(ptr,"and") == 0) {
 		return AND;
 	}
-	else if(strcmp(ptr,"br") == 0){
+	else if(strcmp(ptr,"br") == 0) {
 		return BR;
 	}
-	else if(strcmp(ptr,"halt") == 0){
+	else if(strcmp(ptr,"halt") == 0) {
 		return HALT;
 	}
-	else if(strcmp(ptr,"jmp") == 0){
+	else if(strcmp(ptr,"jmp") == 0) {
 		return jmp;
 	}
-	else if(strcmp(ptr,"jsr") == 0){
+	else if(strcmp(ptr,"jsr") == 0) {
 		return JSR;
 	}
-	else if(strcmp(ptr,"jsrr") == 0){
+	else if(strcmp(ptr,"jsrr") == 0) {
 		return JSRR;
 	}
-	else if(strcmp(ptr,"ldb") == 0){
+	else if(strcmp(ptr,"ldb") == 0) {
 		return LDB;
 	}
-	else if(strcmp(ptr,"ldw") == 0){
+	else if(strcmp(ptr,"ldw") == 0) {
 		return LDW;
 	}
-	else if(strcmp(ptr,"lea") == 0){
+	else if(strcmp(ptr,"lea") == 0) {
 		return LEA;
 	}
-	else if(strcmp(ptr,"nop") == 0){
+	else if(strcmp(ptr,"nop") == 0) {
 		return NOP;
 	}
-	else if(strcmp(ptr,"not") == 0){
+	else if(strcmp(ptr,"not") == 0) {
 		return NOT;
 	}
-	else if(strcmp(ptr,"ret") == 0){
+	else if(strcmp(ptr,"ret") == 0) {
 		return RET;
 	}
-	else if(strcmp(ptr,"lshf") == 0){
+	else if(strcmp(ptr,"lshf") == 0) {
 		return LSHF;
 	}
-	else if(strcmp(ptr,"rshfl") == 0){
+	else if(strcmp(ptr,"rshfl") == 0) {
 		return RSHFL;
 	}
-	else if(strcmp(ptr,"rshfa") == 0){
+	else if(strcmp(ptr,"rshfa") == 0) {
 		return RSHFA;
 	}
-	else if(strcmp(ptr,"rti") == 0){
+	else if(strcmp(ptr,"rti") == 0) {
 		return RTI;
 	}
-	else if(strcmp(ptr,"stb") == 0){
+	else if(strcmp(ptr,"stb") == 0) {
 		return STB;
 	}
-	else if(strcmp(ptr,"stw") == 0){
+	else if(strcmp(ptr,"stw") == 0) {
 		return STW;
 	}
-	else if(strcmp(ptr,"trap") == 0){
+	else if(strcmp(ptr,"trap") == 0) {
 		return TRAP;
 	}	
-	else if(strcmp(ptr,"xor") == 0){
+	else if(strcmp(ptr,"xor") == 0) {
 		return XOR;
 	}
 	else
@@ -152,15 +176,15 @@ int readAndParse( FILE * pInfile, char * pLine, char ** pLabel, char
 int main(int argc, char* argv[]) {
 	if (argc != 4) { 
 		printf("Incorrect number of arguments (found %d, expected 3)\n", (argc - 1));
-		exit(1);
+		exit(4);
 	}
 
-//	char* prgName = argv[1];
-//	char* iFileName = argv[2];
-//	char* oFileName = argv[3];
-//
-//	printf("program name = '%s'\n", prgName);
-//	printf("i/o files are '%s' input and '%s' output", iFileName, oFileName);
+/*	char* prgName = argv[1];
+	char* iFileName = argv[2];
+	char* oFileName = argv[3];
+
+	printf("program name = '%s'\n", prgName);
+	printf("i/o files are '%s' input and '%s' output", iFileName, oFileName); */
 
 	infile = fopen(argv[2], "r");
 	outfile = fopen(argv[3],"w");
