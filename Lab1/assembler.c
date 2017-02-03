@@ -4,33 +4,91 @@
 #include <ctype.h> /* Library for useful character operations */
 #include <limits.h> /* Library for definitions of common variable type characteristics */
 #define MAX_LINE_LENGTH 255
-#define ADD "add"
-#define AND "and"
-#define BR "br"
-#define BRNZP "brnzp"
-#define BRN "brn"
-#define BRP "brp"
-#define BRZ "brz"
-#define BRZP "brzp"
-#define BRNP "brnp"
-#define BRNZ "brnz"
-#define HALT "halt"
-#define JMP "jmp"
-#define JSR "jsr"
-#define JSRR "jsrr"
-#define LDB "ldb"
-#define LDW "ldw"
-#define LEA "lea"
-#define NOP "nop"
 
 FILE* infile = NULL;
 FILE* outfile = NULL;
 
+enum code{
+		ADD, AND,
+		BR,BRNZP,BRNP,BRNZ,BRZP,BRN,BRP,BRZ,
+		HALT, JMP, JSR, JSRR, LDB, LDW,
+		LEA, NOP, NOT, RET, 
+		LSHF, RSHFL, RSHFA, 
+		RTI, STB, STW, TRAP, XOR
+	};
+
+int findOpcode(char *ptr){
+
+	if(strcmp(ptr,"add") == 0){
+		return ADD;
+	}
+	else if(strcmp(ptr,"and") == 0){
+		return AND;
+	}
+	else if(strcmp(ptr,"br") == 0){
+		return BR;
+	}
+	else if(strcmp(ptr,"halt") == 0){
+		return HALT;
+	}
+	else if(strcmp(ptr,"jmp") == 0){
+		return jmp;
+	}
+	else if(strcmp(ptr,"jsr") == 0){
+		return JSR;
+	}
+	else if(strcmp(ptr,"jsrr") == 0){
+		return JSRR;
+	}
+	else if(strcmp(ptr,"ldb") == 0){
+		return LDB;
+	}
+	else if(strcmp(ptr,"ldw") == 0){
+		return LDW;
+	}
+	else if(strcmp(ptr,"lea") == 0){
+		return LEA;
+	}
+	else if(strcmp(ptr,"nop") == 0){
+		return NOP;
+	}
+	else if(strcmp(ptr,"not") == 0){
+		return NOT;
+	}
+	else if(strcmp(ptr,"ret") == 0){
+		return RET;
+	}
+	else if(strcmp(ptr,"lshf") == 0){
+		return LSHF;
+	}
+	else if(strcmp(ptr,"rshfl") == 0){
+		return RSHFL;
+	}
+	else if(strcmp(ptr,"rshfa") == 0){
+		return RSHFA;
+	}
+	else if(strcmp(ptr,"rti") == 0){
+		return RTI;
+	}
+	else if(strcmp(ptr,"stb") == 0){
+		return STB;
+	}
+	else if(strcmp(ptr,"stw") == 0){
+		return STW;
+	}
+	else if(strcmp(ptr,"trap") == 0){
+		return TRAP;
+	}	
+	else if(strcmp(ptr,"xor") == 0){
+		return XOR;
+	}
+	else
+		return -1;
+}
+
 int isOpcode(char *ptr)
 	{	
-		
-
-
+		return findOpcode(ptr);		
 
 	}
 
