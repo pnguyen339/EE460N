@@ -3,7 +3,7 @@
 #include <string.h> /* String operations library */
 #include <ctype.h> /* Library for useful character operations */
 #include <limits.h> /* Library for definitions of common variable type characteristics */
-#include "SymbolTable.c"
+#include "SymbolTable.h"
 #define MAX_LINE_LENGTH 255
 
 FILE* infile = NULL;
@@ -17,7 +17,7 @@ int toNume(char* pStr) {
 		pStr++;
 		lnum = strtol(pStr, NULL, 10);
 	}
-	else if (*pStr == "x") {			/* base 16 */
+	else if (*pStr == 'x') {			/* base 16 */
 		pStr++;
 		lnum = strtol(pStr, NULL, 16);
 	}
@@ -180,20 +180,20 @@ void Add(FILE *pOutfile, char *A1, char *A2,char *A3, char *A4){
 
 }
 
-void setSymbol(FILE *pInfile, symbol* ptr, int* len){
+void setSymbol(FILE *pInfile, symbol* ptr, int* len) {
 	int lineNum = 0;
-	char *line;
+	char line[MAX_LINE_LENGTH + 1];
 	char *Opcode;
 	char *Label=NULL;
 	char *Arg1;
 	char *Arg2;
 	char *Arg3;
 	char *Arg4;
-	while(readAndParse( pInfile, line, &*Label, &*Opcode, &*Arg1,  &*Arg2, &*Arg3, &*Arg4) !=DONE){
-		if(*Label!=NULL){
-			if(findSym(ptr,*len,Label) == -1){
+	while(readAndParse(pInfile, line, &Label, &Opcode, &Arg1,  &Arg2, &Arg3, &Arg4) !=DONE) {
+		if(Label != NULL) {
+			if(findSym(ptr,*len,Label) == -1) {
 				newSymbol(ptr,len,Label,lineNum);
-				*Label = NULL;
+				Label = NULL;
 			}
 			else{
 				printf("Invalid label: %s", Label);
