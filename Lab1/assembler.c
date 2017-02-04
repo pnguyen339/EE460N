@@ -3,6 +3,7 @@
 #include <string.h> /* String operations library */
 #include <ctype.h> /* Library for useful character operations */
 #include <limits.h> /* Library for definitions of common variable type characteristics */
+#include "SymbolTable.c"
 #define MAX_LINE_LENGTH 255
 
 FILE* infile = NULL;
@@ -56,7 +57,7 @@ int findOpcode(char *ptr) {
 		return HALT;
 	}
 	else if(strcmp(ptr,"jmp") == 0) {
-		return jmp;
+		return JMP;
 	}
 	else if(strcmp(ptr,"jsr") == 0) {
 		return JSR;
@@ -180,22 +181,23 @@ void Add(FILE *pOutfile, char *A1, char *A2,char *A3, char *A4){
 }
 
 void setSymbol(FILE *pInfile, symbol* ptr, int* len){
-	int line = 0;
-	char *pline;
+	int lineNum = 0;
+	char *line;
 	char *Opcode;
 	char *Label=NULL;
 	char *Arg1;
 	char *Arg2;
 	char *Arg3;
 	char *Arg4;
-	while(readAndParse( pInfile, pLine, &*pLabel, &*Opcode, &*Arg1,  &*Arg2, &*Arg3, &*Arg4) !=DONE){
+	while(readAndParse( pInfile, line, &*Label, &*Opcode, &*Arg1,  &*Arg2, &*Arg3, &*Arg4) !=DONE){
 		if(*Label!=NULL){
 			if(findSym(ptr,*len,Label) == -1){
-				newSymbol(ptr,len,Label,n);
-				
+				newSymbol(ptr,len,Label,lineNum);
+				*Label = NULL;
 			}
 			else{
-				
+				printf("Invalid label: %s", Label);
+				exit(4);	
 			}
 		} 
 
@@ -210,7 +212,7 @@ int main(int argc, char* argv[]) {
 	char *Arg4;
 	symbol* Table= NULL;
 	int length = 0;
-	if (argv != 4) { 
+	if (argc != 4) { 
 		printf("Incorrect number of arguments (found %d, expected 3)\n", (argc - 1));
 		exit(4);
 	}

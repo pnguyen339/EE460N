@@ -1,12 +1,14 @@
+#ifndef Symbol_Table_H
+#define	Symbol_Table_H
 #include <limits.h> /* Library for definitions of common variable type characteristics */
 #include <string.h> /* String operations library */
 #include <stdlib.h>
 
-typedef struct SymbolTable{
-	char* name;
-	int location;
-	struct SymbolTable *nextptr;
 
+typedef struct SymbolTable{
+        int location;                 
+        char* name;
+        struct SymbolTable *nextptr;  
 }symbol ;
 
 void newSymbol(symbol* strt, int* length, char* Label, int loc){
@@ -40,3 +42,4 @@ void destroy(symbol* strt){
 		destroy(strt->nextptr);
 	free(strt);
 }
+#endif
