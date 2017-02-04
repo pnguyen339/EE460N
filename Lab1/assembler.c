@@ -152,8 +152,10 @@ int readAndParse( FILE * pInfile, char * pLine, char ** pLabel, char
 	   {
 		*pLabel = lPtr;
 		if( !( lPtr = strtok( NULL, "\t\n ," ) ) ) {
-			printf("Invalid opcode: %s", pLabel);
-			exit(2);
+			if(isOpcode(lPtr) = -1){
+				printf("Invalid opcode: %s", pLabel);
+				exit(2);
+			}
 		}
 	   }
 	   
@@ -182,14 +184,14 @@ void Add(FILE *pOutfile, char *A1, char *A2,char *A3, char *A4){
 
 void setSymbol(FILE *pInfile, symbol* ptr, int* len){
 	int lineNum = 0;
-	char *line;
+	char line[MAX_LINE_LENGTH+1];
 	char *Opcode;
 	char *Label=NULL;
 	char *Arg1;
 	char *Arg2;
 	char *Arg3;
 	char *Arg4;
-	while(readAndParse( pInfile, line, &*Label, &*Opcode, &*Arg1,  &*Arg2, &*Arg3, &*Arg4) !=DONE){
+	while(readAndParse( pInfile, line, &Label, &Opcode, &Arg1,  &Arg2, &Arg3, &Arg4) !=DONE){
 		if(*Label!=NULL){
 			if(findSym(ptr,*len,Label) == -1){
 				newSymbol(ptr,len,Label,lineNum);
@@ -202,7 +204,20 @@ void setSymbol(FILE *pInfile, symbol* ptr, int* len){
 		} 
 
 	}
-} 
+}
+
+
+void assemble(FILE *pInfile, FILE *pOutfile, symbol* ptr, int len){
+
+	
+
+
+
+
+
+}
+
+ 
 int main(int argc, char* argv[]) {
 	char *Opcode;
 	char *Label;
@@ -212,19 +227,19 @@ int main(int argc, char* argv[]) {
 	char *Arg4;
 	symbol* Table= NULL;
 	int length = 0;
-	if (argc != 4) { 
+/*	if (argc != 3) { 
 		printf("Incorrect number of arguments (found %d, expected 3)\n", (argc - 1));
 		exit(4);
-	}
-
-/*	char* prgName = argv[1];
+	}*/
+	
+	char* prgName = argv[1];
 	char* iFileName = argv[2];
 	char* oFileName = argv[3];
 
 	printf("program name = '%s'\n", prgName);
-	printf("i/o files are '%s' input and '%s' output", iFileName, oFileName); */
+	printf("i/o files are '%s' input and '%s' output\n", iFileName, oFileName); 
 
-	infile = fopen(argv[2], "r");
+	infile = fopen("countOdd.asm", "r");
 	outfile = fopen(argv[3],"w");
 
 	if (!infile) {
@@ -236,7 +251,11 @@ int main(int argc, char* argv[]) {
 		printf("Error: Cannot open file %s\n", argv[3]);
 		exit(4);
 	}
+	setSymbol(infile,Table, &length);
+	fclose(infile);
+	infile =fopen(argv[2], "r");
 
 	fclose(infile);
 	fclose(outfile);
+	destroy(Table);
 }
