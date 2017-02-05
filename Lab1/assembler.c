@@ -5,14 +5,54 @@
 #include <limits.h> /* Library for definitions of common variable type characteristics */
 #include "SymbolTable.h"
 #define MAX_LINE_LENGTH 255
-
+#define InstBitLen 16
+#define ASCIItoNum 48
 FILE* infile = NULL;
 FILE* outfile = NULL;
 
+char HEX(int number){
+	switch(number){
+		case 0:
+			return '0';
+		case 1:
+			return '1';
+		case 2:
+			return '2';
+		case 3:
+			return '3';
+		case 4:
+			return '4';
+		case 5:
+			return '5';
+		case 6:
+			return '6';
+		case 7:
+			return '7';
+		case 8:
+			return '8';
+		case 9:
+			return '9';
+		case 10:
+			return 'A';
+		case 11:
+			return 'B';
+		case 12:
+			return 'C';
+		case 13:
+			return 'D';
+		case 14:
+			return 'E';
+		case 15:
+			return 'F';							
+	}
+
+
+}
 int toNume(char* pStr) {
 	int num;
 	long lnum;
-
+	if(*pStr == 'r')
+		return(*(pStr+1)-ASCIItoNum);
 	if (*pStr == '#') {					/* base 10 */
 		pStr++;
 		lnum = strtol(pStr, NULL, 10);
@@ -32,14 +72,58 @@ int toNume(char* pStr) {
 	num = (int) lnum;					/* cast and return */
 	return num;
 }
+int intTobin(int* x, int number, int bitlen){
+	int y = bitlen-1;
+	int g = 0;
+	while(g<bitlen){
+		*(x+y) =number %2;
+		number= number/2;
+		g++;
+		y--;
+	}
+	return g;
 
+}
+void nintTobin(int* x,int number, int s)
+{
+	number = number * -1;
+    	int b[InstBitLen] = {0}; 
+    	int i = intTobin(b, number,s);  
+	int y = s-1;
+	int carry = 0;
+	
+	for(i = 0; i<s;i++){
+		b[i] = b[i]^1;
+	}
+
+	i=s-1;
+	
+	do{
+		if(b[i] ==1){
+			b[i] = 0;
+			carry = 1;
+		}
+		else{
+			b[i] = 1;
+			carry = 0;
+		}
+		i--;
+
+	}while(carry ==1 && i >= 0);
+
+	for(i =0; i<s; i++){
+		*x = b[i];
+		x++;
+	}
+
+}
 enum code {
 		ADD=1, AND=5,
-		BR =0,
+		BR =0,BRZ =0, BRN=0, BRP=0, BRNZP=0, BRNZ=0, BRZP=0, BRNP=0,
 		HALT=15, JMP=12, JSR=4, JSRR=4, LDB=2, LDW=6,
 		LEA=14, NOP=0, NOT=9, RET=12, 
 		LSHF=13, RSHFL=13, RSHFA=13, 
-		RTI, STB=3, STW=7, TRAP=15, XOR=9
+		RTI, STB=3, STW=7, TRAP=15, XOR=9, ORIG=17, FILL=18, END=19
 	};
 
 int findOpcode(char *ptr) {
@@ -52,6 +136,28 @@ int findOpcode(char *ptr) {
 	}
 	else if(strcmp(ptr,"br") == 0) {
 		return BR;
+	}
+	else if(strcmp(ptr,"brz") == 0) {
+		return BRZ;
+	}
+	else if(strcmp(ptr,"brn") == 0) {
+		return BRN;
+	}
+	else if(strcmp(ptr,"brp") == 0) {
+		return BRP;
+	}
+
+	else if(strcmp(ptr,"brnzp") == 0) {
+		return BRNZP;
+	}
+	else if(strcmp(ptr,"brzp") == 0) {
+		return BRZP;
+	}
+	else if(strcmp(ptr,"brnp") == 0) {
+		return BRNP;
+	}
+	else if(strcmp(ptr,"brnz") == 0) {
+		return BRNZ;
 	}
 	else if(strcmp(ptr,"halt") == 0) {
 		return HALT;
@@ -107,6 +213,12 @@ int findOpcode(char *ptr) {
 	else if(strcmp(ptr,"xor") == 0) {
 		return XOR;
 	}
+	else if(strcmp(ptr, ".orig") == 0){
+		return ORIG;
+	}
+	else if(strcmp(ptr, ".fill") == 0){
+		return FILL;
+	}
 	else
 		return -1;
 }
@@ -152,21 +264,22 @@ int readAndParse( FILE * pInfile, char * pLine, char ** pLabel, char
 	   {
 		*pLabel = lPtr;
 		if( !( lPtr = strtok( NULL, "\t\n ," ) ) ) {
-			if(isOpcode(lPtr) = -1){
-				printf("Invalid opcode: %s", pLabel);
-				exit(2);
-			}
+			return (OK);
 		}
+		else if(isOpcode(lPtr) == -1){
+			/*printf("Invalid opcode: %s", pLabel);*/
+			exit(2);
+	   	}
 	   }
 	   
            *pOpcode = lPtr;
-
+	   
 	   if( !( lPtr = strtok( NULL, "\t\n ," ) ) ) return( OK );
 	   
            *pArg1 = lPtr;
 	   
            if( !( lPtr = strtok( NULL, "\t\n ," ) ) ) return( OK );
-
+       
 	   *pArg2 = lPtr;
 	   if( !( lPtr = strtok( NULL, "\t\n ," ) ) ) return( OK );
 
@@ -178,32 +291,152 @@ int readAndParse( FILE * pInfile, char * pLine, char ** pLabel, char
 
 	   return( OK );
 	}
-void Add(FILE *pOutfile, char *A1, char *A2,char *A3, char *A4){
 
+void toHexString(int *x, FILE *pOutfile){
+	int i;
+	int num;
+	fprintf( pOutfile, "%c", 'x' );
+	for(i = 0; i < InstBitLen; i +=4){
+		num = *(x+i+3) 
+		     	+(*(x+i+2)*2)
+			+(*(x+i+1)*4)
+			+(*(x+i+0)*8);
+		fprintf( pOutfile, "%c", HEX(num));
+	}
+
+	fprintf( pOutfile, "\n");
 }
+
+void Add(FILE *pOutfile, char *A1, char *A2,char *A3, char *A4){
+	int binary[16] = {0,0,0,1};
+	int DR = toNume(A1);
+	int SR1 = toNume(A2);
+	int SR2 = toNume(A3);
+	int inte[5]={0,0,0,0,0}; 
+
+	if(*A1 == NULL || *A2 == NULL || *A3 == NULL){
+		printf("Invalid Number of Operands");
+		exit(4);
+	}
+
+	if(DR>=0 && DR<=7){
+		intTobin(&binary[4],DR,3);
+	}
+	else{
+		printf("Invalid register: %s", A1);
+		exit(4);
+	}
+
+	if(SR1>=0 && SR1<=7){
+		intTobin(&binary[7],SR1,3);
+	}
+	else{
+		printf("Invalid register: %s", A2);
+		exit(4);
+	}
+
+	if(*A3 == '#'){
+		binary[10] = 1;
+		if(SR2 >= -16 && SR2 < 0)
+			nintTobin(&binary[11], SR2, 5);
+		else if( SR2 >= 0 && SR2 <16){
+			intTobin(&binary[11], SR2, 5);
+		}
+		else{
+			printf("Error: Invalid Constant: %s", A3);
+			exit(3);
+		}
+	}
+	else{
+		binary[10] = 0;
+		binary[11] = 0;
+		binary[12] = 0;
+		if(SR2>=0 && SR2<=7){
+			intTobin(&binary[13],SR2,3);
+		}
+		else{
+			printf("Invalid register: %s", A3);
+			exit(4);
+		}
+	}
+	toHexString(binary,pOutfile);
+}
+
+void And(FILE *pOutfile, char *A1, char *A2,char *A3, char *A4){
+	int binary[16] = {0,1,0,1};
+	int DR = toNume(A1);
+	int SR1 = toNume(A2);
+	int SR2 = toNume(A3);
+	int inte[5]={0,0,0,0,0}; 
+
+	if(*A1 == NULL || *A2 == NULL || *A3 == NULL){
+		printf("Invalid Number of Operands");
+		exit(4);
+	}
+
+	if(DR>=0 && DR<=7){
+		intTobin(&binary[4],DR,3);
+	}
+	else{
+		printf("Invalid register: %s", A1);
+		exit(4);
+	}
+
+	if(SR1>=0 && SR1<=7){
+		intTobin(&binary[7],SR1,3);
+	}
+	else{
+		printf("Invalid register: %s", A2);
+		exit(4);
+	}
+
+	if(*A3 == '#'){
+		binary[10] = 1;
+		if(SR2 >= -16 && SR2 < 0)
+			nintTobin(&binary[11], SR2, 5);
+		else if( SR2 >= 0 && SR2 <16){
+			intTobin(&binary[11], SR2, 5);
+		}
+		else{
+			printf("Error: Invalid Constant: %s", A3);
+			exit(3);
+		}
+	}
+	else{
+		binary[10] = 0;
+		binary[11] = 0;
+		binary[12] = 0;
+		if(SR2>=0 && SR2<=7){
+			intTobin(&binary[13],SR2,3);
+		}
+		else{
+			printf("Invalid register: %s", A3);
+			exit(4);
+		}
+	}
+	toHexString(binary,pOutfile);
+}
+
+void Br(FILE *pOutfile,  char *A1, ,int n, int z, int p){
+	int binary[16] = {0,0,0,0,n,z,p};
+
+
+
+
+} 
 
 void setSymbol(FILE *pInfile, symbol* ptr, int* len) {
 	int lineNum = 0;
-<<<<<<< HEAD
 	char line[MAX_LINE_LENGTH+1];
-=======
-	char line[MAX_LINE_LENGTH + 1];
->>>>>>> 8b47bae79f8ac7ca58c401653a3ee08fb6f729b7
 	char *Opcode;
 	char *Label=NULL;
 	char *Arg1;
 	char *Arg2;
 	char *Arg3;
 	char *Arg4;
-<<<<<<< HEAD
-	while(readAndParse( pInfile, line, &Label, &Opcode, &Arg1,  &Arg2, &Arg3, &Arg4) !=DONE){
-		if(*Label!=NULL){
-			if(findSym(ptr,*len,Label) == -1){
-=======
 	while(readAndParse(pInfile, line, &Label, &Opcode, &Arg1,  &Arg2, &Arg3, &Arg4) !=DONE) {
 		if(Label != NULL) {
 			if(findSym(ptr,*len,Label) == -1) {
->>>>>>> 8b47bae79f8ac7ca58c401653a3ee08fb6f729b7
 				newSymbol(ptr,len,Label,lineNum);
 				Label = NULL;
 			}
@@ -217,14 +450,25 @@ void setSymbol(FILE *pInfile, symbol* ptr, int* len) {
 }
 
 
-void assemble(FILE *pInfile, FILE *pOutfile, symbol* ptr, int len){
 
+void assemble(FILE *pInfile, FILE *pOutfile, symbol* ptr, int len){
+	int lineNum = 0;
+	char line[MAX_LINE_LENGTH+1];
+	char *Opcode;
+	char *Label=NULL;
+	char *Arg1;
+	char *Arg2;
+	char *Arg3;
+	char *Arg4;
+	while(readAndParse(pInfile, line, &Label, &Opcode, &Arg1,  &Arg2, &Arg3, &Arg4) !=DONE) {
+		switch(findOpcode(Opcode)){
+			case ADD: Add(pOutfile, Arg1, Arg2, Arg3,Arg4);
+			case AND: And(pOutfile, Arg1, Arg2,	Arg3,Arg4);
+			case BR:						
+		}
 	
 
-
-
-
-
+	}
 }
 
  
@@ -250,7 +494,7 @@ int main(int argc, char* argv[]) {
 	printf("i/o files are '%s' input and '%s' output\n", iFileName, oFileName); 
 
 	infile = fopen("countOdd.asm", "r");
-	outfile = fopen(argv[3],"w");
+	outfile = fopen("output.obj","w");
 
 	if (!infile) {
 		printf("Error: Cannot open file %s\n", argv[2]);
@@ -261,10 +505,10 @@ int main(int argc, char* argv[]) {
 		printf("Error: Cannot open file %s\n", argv[3]);
 		exit(4);
 	}
-	setSymbol(infile,Table, &length);
+	/*setSymbol(infile,Table, &length);*/
 	fclose(infile);
-	infile =fopen(argv[2], "r");
-
+	infile =fopen("countOddtest.asm", "r");
+	assemble(infile,outfile,Table,length);
 	fclose(infile);
 	fclose(outfile);
 	destroy(Table);
