@@ -72,19 +72,58 @@ int toNume(char* pStr) {
 	num = (int) lnum;					/* cast and return */
 	return num;
 }
-int intTobin(int* x, int number, int bitlen){
+void intTobin(int* x, int number, int bitlen){
+	int b[InstBitLen] = {0};
 	int y = bitlen-1;
 	int g = 0;
+	int n = 0;
+	int i;
+	int carry = 0;
+	
+	if(number < 0){
+		number = number * -1;
+		n =1;
+	}
 	while(g<bitlen){
-		*(x+y) =number %2;
+		b[y] =number %2;
 		number= number/2;
 		g++;
 		y--;
 	}
-	return g;
 
+	if(n == 1){
+		
+		y = bitlen-1;
+		
+		for(i = 0; i<bitlen;i++){
+			b[i] = b[i]^1;
+		}
+
+		i=bitlen-1;
+	
+		do{
+			if(b[i] ==1){
+				b[i] = 0;
+				carry = 1;
+			}
+			else{
+				b[i] = 1;
+				carry = 0;
+			}
+			i--;
+
+		}while(carry ==1 && i >= 0);
+
+		
+	}
+
+	for(i =0; i<bitlen; i++){
+			*x = b[i];
+			x++;
+	}
 }
-void nintTobin(int* x,int number, int s)
+
+/*void nintTobin(int* x,int number, int s)
 {
 	number = number * -1;
     	int b[InstBitLen] = {0}; 
@@ -116,10 +155,11 @@ void nintTobin(int* x,int number, int s)
 		x++;
 	}
 
-}
+}*/
+
 enum code {
 		ADD=1, AND=5,
-		BR =0,BRZ =0, BRN=0, BRP=0, BRNZP=0, BRNZ=0, BRZP=0, BRNP=0,
+		BR,BRZ, BRN, BRP, BRNZP, BRNZ, BRZP, BRNP,
 		HALT=15, JMP=12, JSR=4, JSRR=4, LDB=2, LDW=6,
 		LEA=14, NOP=0, NOT=9, RET=12, 
 		LSHF=13, RSHFL=13, RSHFA=13, 
@@ -337,9 +377,7 @@ void Add(FILE *pOutfile, char *A1, char *A2,char *A3, char *A4){
 
 	if(*A3 == '#'){
 		binary[10] = 1;
-		if(SR2 >= -16 && SR2 < 0)
-			nintTobin(&binary[11], SR2, 5);
-		else if( SR2 >= 0 && SR2 <16){
+		if(SR2 >= -16 && SR2 <16){
 			intTobin(&binary[11], SR2, 5);
 		}
 		else{
@@ -392,9 +430,7 @@ void And(FILE *pOutfile, char *A1, char *A2,char *A3, char *A4){
 
 	if(*A3 == '#'){
 		binary[10] = 1;
-		if(SR2 >= -16 && SR2 < 0)
-			nintTobin(&binary[11], SR2, 5);
-		else if( SR2 >= 0 && SR2 <16){
+		if(SR2 >= -16 && SR2 <16){
 			intTobin(&binary[11], SR2, 5);
 		}
 		else{
@@ -417,14 +453,94 @@ void And(FILE *pOutfile, char *A1, char *A2,char *A3, char *A4){
 	toHexString(binary,pOutfile);
 }
 
-void Br(FILE *pOutfile,  char *A1, ,int n, int z, int p){
+void Br(FILE *pOutfile,char *label, char *A1, symbol *ptr,int n, int z, int p, int line){
 	int binary[16] = {0,0,0,0,n,z,p};
+	int OFFSET;
+	
+	if(*A1 ='#'){
+		OFFSET = toNume(A1);
+		
+		if(OFFSET >= -256 && OFFSET <255){
+			intTobin(&binary[7], OFFSET, 9);
+		}
+		else{
+			printf("Error: Invalid Constant: %s", A1);
+			exit(3);
+		}
+		toHexString(binary,pOutfile);
+	}
 
+	else if(findSym(ptr,*len, label) == -1){
+			printf("Error: %s is not define", A1);
+			exit(1);
+	}
 
-
+	else {
+		OFFSET = findSym(ptr,*len, label) - line;
+		if(OFFSET >= -256 && OFFSET <255){
+			intTobin(&binary[7], OFFSET, 9);
+		}
+		else{
+			printf("Error: Out of Bound: %s", A1);
+			exit(4);
+		}
+		toHexString(binary,pOutfile);
+	}
 
 } 
 
+void Xor(FILE *pOutfile, char *A1, char *A2,char *A3, char *A4){
+	int binary[16] = {1,0,0,1};
+	int DR = toNume(A1);
+	int SR1 = toNume(A2);
+	int SR2 = toNume(A3);
+	int inte[5]={0,0,0,0,0}; 
+
+	if(*A1 == NULL || *A2 == NULL || *A3 == NULL){
+		printf("Invalid Number of Operands");
+		exit(4);
+	}
+
+	if(DR>=0 && DR<=7){
+		intTobin(&binary[4],DR,3);
+	}
+	else{
+		printf("Invalid register: %s", A1);
+		exit(4);
+	}
+
+	if(SR1>=0 && SR1<=7){
+		intTobin(&binary[7],SR1,3);
+	}
+	else{
+		printf("Invalid register: %s", A2);
+		exit(4);
+	}
+
+	if(*A3 == '#'){
+		binary[10] = 1;
+		if(SR2 >= -16 && SR2 <16){
+			intTobin(&binary[11], SR2, 5);
+		}
+		else{
+			printf("Error: Invalid Constant: %s", A3);
+			exit(3);
+		}
+	}
+	else{
+		binary[10] = 0;
+		binary[11] = 0;
+		binary[12] = 0;
+		if(SR2>=0 && SR2<=7){
+			intTobin(&binary[13],SR2,3);
+		}
+		else{
+			printf("Invalid register: %s", A3);
+			exit(4);
+		}
+	}
+	toHexString(binary,pOutfile);
+}
 void setSymbol(FILE *pInfile, symbol* ptr, int* len) {
 	int lineNum = 0;
 	char line[MAX_LINE_LENGTH+1];
@@ -464,8 +580,17 @@ void assemble(FILE *pInfile, FILE *pOutfile, symbol* ptr, int len){
 		switch(findOpcode(Opcode)){
 			case ADD: Add(pOutfile, Arg1, Arg2, Arg3,Arg4);
 			case AND: And(pOutfile, Arg1, Arg2,	Arg3,Arg4);
-			case BR:						
+			case BR: Br(pOutfile,Arg1,ptr,1,1,1);
+			case BRN: Br(pOutfile,Label, Arg1,ptr,1,0,0,lineNum);
+			case BRP: Br(pOutfile,Label, Arg1,ptr,0,0,1,lineNum);
+			case BRZ: Br(pOutfile,Label, Arg1,ptr,0,1,0,lineNum);
+			case BRNP: Br(pOutfile,Label Arg1,ptr,1,0,1,lineNum);
+			case BRZP: Br(pOutfile,Label,Arg1,ptr,0,1,1,lineNum);
+			case BRNZ: Br(pOutfile,Label,Arg1,ptr,1,1,0,lineNum);
+			case BRNZP: Br(pOutfile,Label,Arg1,ptr,1,1,1,lineNum);
+			case XOR : Xor(pOutfile, Arg1, Arg2, Arg3,Arg4);
 		}
+		lineNum++;
 	
 
 	}
