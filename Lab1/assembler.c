@@ -341,7 +341,7 @@ int readAndParse(FILE * pInfile, char * pLine, char ** pLabel, char
 void toHexString(int *x, FILE *pOutfile) {
 	int i;
 	int num;
-	fprintf(pOutfile, "%c", 'x');
+	fprintf(pOutfile, "0x");
 	for (i = 0; i < InstBitLen; i += 4) {
 		num = *(x + i + 3)
 			+ (*(x + i + 2) * 2)
@@ -456,11 +456,16 @@ void And(FILE *pOutfile, char *A1, char *A2, char *A3, char *A4) {
 	toHexString(binary, pOutfile);
 }
 
-void Br(FILE *pOutfile, char *label, char *A1, symbol *ptr, int n, int z, int p, int line) {
+void Br(FILE *pOutfile, char *A1, symbol *ptr, int n, int z, int p, int line) {
 	int binary[16] = { 0,0,0,0,n,z,p };
 	int offset;
 
-	if (*A1 = '#') {
+	if (A1 == NULL ) {
+		printf("Invalid Number of Operands");
+		exit(4);
+	}
+
+	if (*A1 == '#') {
 		offset = toNume(A1);
 
 		if (offset >= -256 && offset < 256) {
@@ -473,13 +478,13 @@ void Br(FILE *pOutfile, char *label, char *A1, symbol *ptr, int n, int z, int p,
 		toHexString(binary, pOutfile);
 	}
 
-	else if (findSym(ptr, label) == -1) {
+	else if (findSym(ptr, A1) == -1) {
 		printf("Error: %s is not define", A1);
 		exit(1);
 	}
 
 	else {
-		offset = findSym(ptr, label) - (line+1);
+		offset = findSym(ptr, A1) - (line+1);
 		if (offset >= -256 && offset < 256) {
 			intTobin(&binary[7], offset, 9);
 		}
@@ -642,6 +647,10 @@ void Trap(FILE *pOutfile, char *A1) {
 	int binary[16] = {1,1,1,1,0,0,0,0};
 	int vector = toNume(A1);
 
+	if (A1 == NULL ) {
+		printf("Invalid Number of Operands");
+		exit(4);
+	}
 	if(vector >= -128 && vector <=127) {
 		intTobin(&binary[8], vector, 8);
 		toHexString(binary, pOutfile);
@@ -683,7 +692,7 @@ void Shift(FILE *pOutfile, char *A1, char *A2, char *A3, int n, int m) {
 	if (*A3 == '#') {
 		binary[10] = n;
 		binary[11] = m;
-		if (sr2 >= -8 && sr2 < 7) {
+		if (sr2 >= 0 && sr2 < 16) {
 			intTobin(&binary[12], sr2, 4);
 		}
 		else {
@@ -710,7 +719,7 @@ void Jmp(FILE *pOutfile, char *A1) {
 
 }
 
-void Jsrr(FILE *pOutfile, char *A1, int n, symbol *ptr, char *label, int line) {
+void Jsrr(FILE *pOutfile, char *A1, int n, symbol *ptr, int line) {
 	int binary[16] = {0,1,0,0,n,0,0,0,0,0,0,0,0,0,0,0};
 	int baseR;
 	int offset;
@@ -725,7 +734,7 @@ void Jsrr(FILE *pOutfile, char *A1, int n, symbol *ptr, char *label, int line) {
 			intTobin(&binary[7], baseR, 3);
 		}
 	}
-	else if (*A1 = '#') {
+	else if (*A1 == '#') {
 		offset = toNume(A1);
 
 		if (offset >= -((2<<11)/2) && offset < ((2<<11)/2)) {
@@ -736,12 +745,12 @@ void Jsrr(FILE *pOutfile, char *A1, int n, symbol *ptr, char *label, int line) {
 			exit(3);
 		}
 	}
-	else if (findSym(ptr, label) == -1) {
+	else if (findSym(ptr, A1) == -1) {
 		printf("Error: %s is not define", A1);
 		exit(1);
 	}
 	else {
-		offset = findSym(ptr, label) - (line+1);
+		offset = findSym(ptr, A1) - (line+1);
 		if (offset >= -((2<<11)/2) && offset < ((2<<11)/2)) {
 			intTobin(&binary[5], offset, 9);
 		}
@@ -755,7 +764,7 @@ void Jsrr(FILE *pOutfile, char *A1, int n, symbol *ptr, char *label, int line) {
 
 }
 
-void Lea(FILE *pOutfile, char *A1, char *A2, symbol *ptr, char *label, int line) {
+void Lea(FILE *pOutfile, char *A1, char *A2, symbol *ptr, int line) {
 	int binary[16] = { 1,1,1,0};
 	int offset;
 	int dr;
@@ -774,7 +783,7 @@ void Lea(FILE *pOutfile, char *A1, char *A2, symbol *ptr, char *label, int line)
 		exit(4);
 	}
 
-	if (*A2 = '#') {
+	if (*A2 == '#') {
 		offset = toNume(A2);
 		if (offset >= -256 && offset < 256) {
 			intTobin(&binary[7], offset, 9);
@@ -786,18 +795,18 @@ void Lea(FILE *pOutfile, char *A1, char *A2, symbol *ptr, char *label, int line)
 		toHexString(binary, pOutfile);
 	}
 
-	else if (findSym(ptr, label) == -1) {
+	else if (findSym(ptr, A2) == -1) {
 		printf("Error: %s is not define", A2);
 		exit(1);
 	}
 
 	else {
-		offset = findSym(ptr, label) - (line+1);
+		offset = findSym(ptr, A2) - (line+1);
 		if (offset >= -256 && offset < 256) {
 			intTobin(&binary[7], offset, 9);
 		}
 		else {
-			printf("Error: Out of Bound: %s", A1);
+			printf("Error: Out of Bound: %s", A2);
 			exit(4);
 		}
 		toHexString(binary, pOutfile);
@@ -809,22 +818,24 @@ void setSymbol(FILE *pInfile, symbol* ptr, int* len) {
 	int lineNum = 0;
 	char line[MAX_LINE_LENGTH + 1];
 	char *Opcode;
-	char *Label;
+	char *Label = NULL;
 	char *Arg1;
 	char *Arg2;
 	char *Arg3;
 	char *Arg4;
 	while (readAndParse(pInfile, line, &Label, &Opcode, &Arg1, &Arg2, &Arg3, &Arg4) != DONE) {
-		if (Label != NULL) {
+		if (*Label != NULL) {
 			if (findSym(ptr, Label) == -1) {
-				newSymbol(ptr, Label, lineNum);
-				Label = NULL;
+				newSymbol(ptr, Label, lineNum-1);
+				*Label = NULL;
 			}
 			else {
 				printf("Invalid label: %s", Label);
 				exit(4);
 			}
 		}
+		if(*Opcode != NULL)
+			lineNum++;
 
 	}
 }
@@ -832,7 +843,7 @@ void setSymbol(FILE *pInfile, symbol* ptr, int* len) {
 
 
 void assemble(FILE *pInfile, FILE *pOutfile, symbol* ptr, int len) {
-	int lineNum = 0;
+	int lineNum = -2;
 	char line[MAX_LINE_LENGTH + 1];
 	char *Opcode;
 	char *Label = NULL;
@@ -841,43 +852,50 @@ void assemble(FILE *pInfile, FILE *pOutfile, symbol* ptr, int len) {
 	char *Arg3;
 	char *Arg4;
 	while (readAndParse(pInfile, line, &Label, &Opcode, &Arg1, &Arg2, &Arg3, &Arg4) != DONE) {
-		switch (findOpcode(Opcode)) {
-			case ADD: Add(pOutfile, Arg1, Arg2, Arg3, Arg4); break;
-			case AND: And(pOutfile, Arg1, Arg2, Arg3, Arg4); break;
-			case BR: Br(pOutfile, Label, Arg1, ptr, 1, 1, 1, lineNum); break;
-			case BRN: Br(pOutfile, Label, Arg1, ptr, 1, 0, 0, lineNum); break;
-			case BRP: Br(pOutfile, Label, Arg1, ptr, 0, 0, 1, lineNum); break;
-			case BRZ: Br(pOutfile, Label, Arg1, ptr, 0, 1, 0, lineNum); break;
-			case BRNP: Br(pOutfile, Label, Arg1, ptr, 1, 0, 1, lineNum); break;
-			case BRZP: Br(pOutfile, Label, Arg1, ptr, 0, 1, 1, lineNum); break;
-			case BRNZ: Br(pOutfile, Label, Arg1, ptr, 1, 1, 0, lineNum); break;
-			case BRNZP: Br(pOutfile, Label, Arg1, ptr, 1, 1, 1, lineNum); break;
-			case XOR: Xor(pOutfile, Arg1, Arg2, Arg3, Arg4); break;
-			case LDB: Ld(pOutfile, Arg1, Arg2, Arg3, 0); break;
-			case LDW: Ld(pOutfile, Arg1, Arg2, Arg3, 1); break;
-			case NOT: Xor(pOutfile, Arg1, Arg2, "#-1", Arg4); break;
-			case RET: Return(pOutfile,1); break;
-			case RTI: Return(pOutfile,0); break;
-			case STB: St(pOutfile, Arg1, Arg2, Arg3, 0); break;
-			case STW: St(pOutfile, Arg1, Arg2, Arg3, 1); break;
-			case TRAP: Trap(pOutfile, Arg1); break;
-			case HALT: Trap(pOutfile, "x25"); break;
-			case LSHF: Shift(pOutfile, Arg1, Arg2, Arg3,0,0); break;
-			case RSHFL: Shift(pOutfile, Arg1, Arg2, Arg3,0,1); break;
-			case RSHFA: Shift(pOutfile, Arg1, Arg2, Arg3,1,1); break;
-			case JMP: Jmp(pOutfile,Arg1); break;
-			case JSR: Jsrr(pOutfile,Arg1,1,ptr, Label, lineNum); break;
-			case JSRR: Jsrr(pOutfile,Arg1,0,ptr, Label, lineNum); break;
-			case LEA: Lea(pOutfile, Arg1, Arg2, ptr, Label, lineNum); break;
-			case END: break;
-			case FILL: fprintf(pOutfile, "%x\n", toNume(Arg1));
-			default:
-				printf("Invalid Opcode: %s", Opcode);
-				exit(2);
+		if(*Opcode != NULL){
+			lineNum++;
+			switch (findOpcode(Opcode)) {
+				case ADD: Add(pOutfile, Arg1, Arg2, Arg3, Arg4); break;
+				case AND: And(pOutfile, Arg1, Arg2, Arg3, Arg4); break;
+				case BR: Br(pOutfile,  Arg1, ptr, 1, 1, 1, lineNum); break;
+				case BRN: Br(pOutfile,  Arg1, ptr, 1, 0, 0, lineNum); break;
+				case BRP: Br(pOutfile,  Arg1, ptr, 0, 0, 1, lineNum); break;
+				case BRZ: Br(pOutfile,  Arg1, ptr, 0, 1, 0, lineNum); break;
+				case BRNP: Br(pOutfile,  Arg1, ptr, 1, 0, 1, lineNum); break;
+				case BRZP: Br(pOutfile, Arg1, ptr, 0, 1, 1, lineNum); break;
+				case BRNZ: Br(pOutfile, Arg1, ptr, 1, 1, 0, lineNum); break;
+				case BRNZP: Br(pOutfile, Arg1, ptr, 1, 1, 1, lineNum); break;
+				case XOR: Xor(pOutfile, Arg1, Arg2, Arg3, Arg4); break;
+				case LDB: Ld(pOutfile, Arg1, Arg2, Arg3, 0); break;
+				case LDW: Ld(pOutfile, Arg1, Arg2, Arg3, 1); break;
+				case NOT: Xor(pOutfile, Arg1, Arg2, "#-1", Arg4); break;
+				case RET: Return(pOutfile,1); break;
+				case RTI: Return(pOutfile,0); break;
+				case STB: St(pOutfile, Arg1, Arg2, Arg3, 0); break;
+				case STW: St(pOutfile, Arg1, Arg2, Arg3, 1); break;
+				case TRAP: Trap(pOutfile, Arg1); break;
+				case HALT: Trap(pOutfile, "x25"); break;
+				case LSHF: Shift(pOutfile, Arg1, Arg2, Arg3,0,0); break;
+				case RSHFL: Shift(pOutfile, Arg1, Arg2, Arg3,0,1); break;
+				case RSHFA: Shift(pOutfile, Arg1, Arg2, Arg3,1,1); break;
+				case JMP: Jmp(pOutfile,Arg1); break;
+				case JSR: Jsrr(pOutfile,Arg1,1,ptr, lineNum); break;
+				case JSRR: Jsrr(pOutfile,Arg1,0,ptr, lineNum); break;
+				case LEA: Lea(pOutfile, Arg1, Arg2, ptr, lineNum); break;
+				case END: break;
+				case ORIG: if(toNume(Arg1) % 2 != 0) { 
+					printf("Bad .orig\n"); 
+					exit(3); 
+				}
+					break;
+				case FILL: fprintf(pOutfile, "0x%x\n", toNume(Arg1)); break;
+				default:
+					printf("Invalid Opcode: %s", Opcode);
+					exit(2);
 
-		}
-		lineNum++;
-
+			}
+		}	
+		
 
 	}
 }

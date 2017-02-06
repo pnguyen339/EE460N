@@ -55,7 +55,7 @@ symbol* initTable(void) {
 
 int findSym(symbol* strt, char* Label) {
 	int i;
-	for (i = 0; i < length; i++) {
+	for (i = 0; i <= length; i++) {
 		if (strcmp(strt->name, Label) == 0)
 			return strt->location;
 		else
