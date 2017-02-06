@@ -350,24 +350,24 @@ void toHexString(int *x, FILE *pOutfile) {
 
 void Add(FILE *pOutfile, char *A1, char *A2, char *A3, char *A4) {
 	int binary[16] = { 0,0,0,1 };
-	int DR = toNume(A1);
-	int SR1 = toNume(A2);
-	int SR2 = toNume(A3);
+	int dr = toNume(A1);
+	int sr1 = toNume(A2);
+	int sr2 = toNume(A3);
 	if (A1 == NULL || A2 == NULL || A3 == NULL) {
 		printf("Invalid Number of Operands");
 		exit(4);
 	}
 
-	if (DR >= 0 && DR <= 7) {
-		intTobin(&binary[4], DR, 3);
+	if (dr >= 0 && dr <= 7) {
+		intTobin(&binary[4], dr, 3);
 	}
 	else {
 		printf("Invalid register: %s", A1);
 		exit(4);
 	}
 
-	if (SR1 >= 0 && SR1 <= 7) {
-		intTobin(&binary[7], SR1, 3);
+	if (sr1 >= 0 && sr1 <= 7) {
+		intTobin(&binary[7], sr1, 3);
 	}
 	else {
 		printf("Invalid register: %s", A2);
@@ -376,8 +376,8 @@ void Add(FILE *pOutfile, char *A1, char *A2, char *A3, char *A4) {
 
 	if (*A3 == '#') {
 		binary[10] = 1;
-		if (SR2 >= -16 && SR2 < 16) {
-			intTobin(&binary[11], SR2, 5);
+		if (sr2 >= -16 && sr2 < 16) {
+			intTobin(&binary[11], sr2, 5);
 		}
 		else {
 			printf("Error: Invalid Constant: %s", A3);
@@ -388,8 +388,8 @@ void Add(FILE *pOutfile, char *A1, char *A2, char *A3, char *A4) {
 		binary[10] = 0;
 		binary[11] = 0;
 		binary[12] = 0;
-		if (SR2 >= 0 && SR2 <= 7) {
-			intTobin(&binary[13], SR2, 3);
+		if (sr2 >= 0 && sr2 <= 7) {
+			intTobin(&binary[13], sr2, 3);
 		}
 		else {
 			printf("Invalid register: %s", A3);
@@ -401,25 +401,25 @@ void Add(FILE *pOutfile, char *A1, char *A2, char *A3, char *A4) {
 
 void And(FILE *pOutfile, char *A1, char *A2, char *A3, char *A4) {
 	int binary[16] = { 0,1,0,1 };
-	int DR = toNume(A1);
-	int SR1 = toNume(A2);
-	int SR2 = toNume(A3);
+	int dr = toNume(A1);
+	int sr1 = toNume(A2);
+	int sr2 = toNume(A3);
 
 	if (A1 == NULL || A2 == NULL || A3 == NULL) {
 		printf("Invalid Number of Operands");
 		exit(4);
 	}
 
-	if (DR >= 0 && DR <= 7) {
-		intTobin(&binary[4], DR, 3);
+	if (dr >= 0 && dr <= 7) {
+		intTobin(&binary[4], dr, 3);
 	}
 	else {
 		printf("Invalid register: %s", A1);
 		exit(4);
 	}
 
-	if (SR1 >= 0 && SR1 <= 7) {
-		intTobin(&binary[7], SR1, 3);
+	if (sr1 >= 0 && sr1 <= 7) {
+		intTobin(&binary[7], sr1, 3);
 	}
 	else {
 		printf("Invalid register: %s", A2);
@@ -428,8 +428,8 @@ void And(FILE *pOutfile, char *A1, char *A2, char *A3, char *A4) {
 
 	if (*A3 == '#') {
 		binary[10] = 1;
-		if (SR2 >= -16 && SR2 < 16) {
-			intTobin(&binary[11], SR2, 5);
+		if (sr2 >= -16 && sr2 < 16) {
+			intTobin(&binary[11], sr2, 5);
 		}
 		else {
 			printf("Error: Invalid Constant: %s", A3);
@@ -440,8 +440,8 @@ void And(FILE *pOutfile, char *A1, char *A2, char *A3, char *A4) {
 		binary[10] = 0;
 		binary[11] = 0;
 		binary[12] = 0;
-		if (SR2 >= 0 && SR2 <= 7) {
-			intTobin(&binary[13], SR2, 3);
+		if (sr2 >= 0 && sr2 <= 7) {
+			intTobin(&binary[13], sr2, 3);
 		}
 		else {
 			printf("Invalid register: %s", A3);
@@ -458,7 +458,7 @@ void Br(FILE *pOutfile, char *label, char *A1, symbol *ptr, int n, int z, int p,
 	if (*A1 = '#') {
 		offset = toNume(A1);
 
-		if (offset >= -256 && offset < 255) {
+		if (offset >= -256 && offset < 256) {
 			intTobin(&binary[7], offset, 9);
 		}
 		else {
@@ -474,8 +474,8 @@ void Br(FILE *pOutfile, char *label, char *A1, symbol *ptr, int n, int z, int p,
 	}
 
 	else {
-		offset = findSym(ptr, label) - line;
-		if (offset >= -256 && offset < 255) {
+		offset = findSym(ptr, label) - (line+1);
+		if (offset >= -256 && offset < 256) {
 			intTobin(&binary[7], offset, 9);
 		}
 		else {
@@ -489,25 +489,25 @@ void Br(FILE *pOutfile, char *label, char *A1, symbol *ptr, int n, int z, int p,
 
 void Xor(FILE *pOutfile, char *A1, char *A2, char *A3, char *A4) {
 	int binary[16] = { 1,0,0,1 };
-	int DR = toNume(A1);
-	int SR1 = toNume(A2);
-	int SR2 = toNume(A3);
+	int dr = toNume(A1);
+	int sr1 = toNume(A2);
+	int sr2 = toNume(A3);
 
 	if (A1 == NULL || A2 == NULL || A3 == NULL) {
 		printf("Invalid Number of Operands");
 		exit(4);
 	}
 
-	if (DR >= 0 && DR <= 7) {
-		intTobin(&binary[4], DR, 3);
+	if (dr >= 0 && dr <= 7) {
+		intTobin(&binary[4], dr, 3);
 	}
 	else {
 		printf("Invalid register: %s", A1);
 		exit(4);
 	}
 
-	if (SR1 >= 0 && SR1 <= 7) {
-		intTobin(&binary[7], SR1, 3);
+	if (sr1 >= 0 && sr1 <= 7) {
+		intTobin(&binary[7], sr1, 3);
 	}
 	else {
 		printf("Invalid register: %s", A2);
@@ -516,8 +516,8 @@ void Xor(FILE *pOutfile, char *A1, char *A2, char *A3, char *A4) {
 
 	if (*A3 == '#') {
 		binary[10] = 1;
-		if (SR2 >= -16 && SR2 < 16) {
-			intTobin(&binary[11], SR2, 5);
+		if (sr2 >= -16 && sr2 < 16) {
+			intTobin(&binary[11], sr2, 5);
 		}
 		else {
 			printf("Error: Invalid Constant: %s", A3);
@@ -528,8 +528,8 @@ void Xor(FILE *pOutfile, char *A1, char *A2, char *A3, char *A4) {
 		binary[10] = 0;
 		binary[11] = 0;
 		binary[12] = 0;
-		if (SR2 >= 0 && SR2 <= 7) {
-			intTobin(&binary[13], SR2, 3);
+		if (sr2 >= 0 && sr2 <= 7) {
+			intTobin(&binary[13], sr2, 3);
 		}
 		else {
 			printf("Invalid register: %s", A3);
@@ -541,25 +541,25 @@ void Xor(FILE *pOutfile, char *A1, char *A2, char *A3, char *A4) {
 
 void Ld(FILE *pOutfile, char *A1, char *A2, char *A3, int BW) {
 	int binary[16] = { 0,BW,1,0 };
-	int DR = toNume(A1);
-	int SR1 = toNume(A2);
-	int SR2 = toNume(A3);
+	int dr = toNume(A1);
+	int sr1 = toNume(A2);
+	int sr2 = toNume(A3);
 
 	if (A1 == NULL || A2 == NULL || A3 == NULL) {
 		printf("Invalid Number of Operands");
 		exit(4);
 	}
 
-	if (DR >= 0 && DR <= 7) {
-		intTobin(&binary[4], DR, 3);
+	if (dr >= 0 && dr <= 7) {
+		intTobin(&binary[4], dr, 3);
 	}
 	else {
 		printf("Invalid register: %s", A1);
 		exit(4);
 	}
 
-	if (SR1 >= 0 && SR1 <= 7) {
-		intTobin(&binary[7], SR1, 3);
+	if (sr1 >= 0 && sr1 <= 7) {
+		intTobin(&binary[7], sr1, 3);
 	}
 	else {
 		printf("Invalid register: %s", A2);
@@ -567,8 +567,8 @@ void Ld(FILE *pOutfile, char *A1, char *A2, char *A3, int BW) {
 	}
 
 	if (*A3 == '#') {
-		if (SR2 >= -32 && SR2 < 131) {
-			intTobin(&binary[10], SR2, 6);
+		if (sr2 >= -32 && sr2 < 131) {
+			intTobin(&binary[10], sr2, 6);
 		}
 		else {
 			printf("Error: Invalid Constant: %s", A3);
@@ -581,6 +581,223 @@ void Ld(FILE *pOutfile, char *A1, char *A2, char *A3, int BW) {
 	}
 
 	toHexString(binary, pOutfile);
+}
+
+void Return(FILE *pOutfile, int n){
+	int binary[16] = {1,n,0,0,0,0,0,n,n,n,0,0,0,0,0,0};
+	toHexString(binary, pOutfile);
+
+}
+
+void St(FILE *pOutfile, char *A1, char *A2, char *A3, int BW) {
+	int binary[16] = { 0,BW,1,1 };
+	int dr = toNume(A1);
+	int sr1 = toNume(A2);
+	int sr2 = toNume(A3);
+
+	if (A1 == NULL || A2 == NULL || A3 == NULL) {
+		printf("Invalid Number of Operands");
+		exit(4);
+	}
+
+	if (dr >= 0 && dr <= 7) {
+		intTobin(&binary[4], dr, 3);
+	}
+	else {
+		printf("Invalid register: %s", A1);
+		exit(4);
+	}
+
+	if (sr1 >= 0 && sr1 <= 7) {
+		intTobin(&binary[7], sr1, 3);
+	}
+	else {
+		printf("Invalid register: %s", A2);
+		exit(4);
+	}
+
+	if (*A3 == '#') {
+		if (sr2 >= -32 && sr2 < 131) {
+			intTobin(&binary[10], sr2, 6);
+		}
+		else {
+			printf("Error: Invalid Constant: %s", A3);
+			exit(3);
+		}
+	}
+	else {
+		printf("Invalid operand: %s", A3);
+		exit(2);
+	}
+
+	toHexString(binary, pOutfile);
+}
+
+void Trap(FILE *pOutfile, char *A1) {
+	int binary[16] = {1,1,1,1,0,0,0,0};
+	int vector = toNume(A1);
+
+	if(vector >= -128 && vector <=127) {
+		intTobin(&binary[8], vector, 8);
+		toHexString(binary, pOutfile);
+	}
+	
+	else {
+		printf("Error: Invalid Constant: %s", A1);
+		exit(4);
+	}
+}
+
+void Shift(FILE *pOutfile, char *A1, char *A2, char *A3, int n, int m) {
+	int binary[16] = {1,1,0,1};
+	int dr = toNume(A1);
+	int sr1 = toNume(A2);
+	int sr2 = toNume(A3);
+
+	if (A1 == NULL || A2 == NULL || A3 == NULL) {
+		printf("Invalid Number of Operands");
+		exit(4);
+	}
+
+	if (dr >= 0 && dr <= 7) {
+		intTobin(&binary[4], dr, 3);
+	}
+	else {
+		printf("Invalid register: %s", A1);
+		exit(4);
+	}
+
+	if (sr1 >= 0 && sr1 <= 7) {
+		intTobin(&binary[7], sr1, 3);
+	}
+	else {
+		printf("Invalid register: %s", A2);
+		exit(4);
+	}
+
+	if (*A3 == '#') {
+		binary[10] = n;
+		binary[11] = m;
+		if (sr2 >= -8 && sr2 < 7) {
+			intTobin(&binary[12], sr2, 4);
+		}
+		else {
+			printf("Error: Invalid Constant: %s", A3);
+			exit(3);
+		}
+	}
+	
+	toHexString(binary, pOutfile);
+}
+
+void Jmp(FILE *pOutfile, char *A1) {
+	int binary[16] = {1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	int baseR = toNume(A1);
+
+	if (A1 == NULL) {
+		printf("Invalid Number of Operands");
+		exit(4);
+	}
+	if (baseR >= 0 && baseR <= 7) {
+		intTobin(&binary[7], baseR, 3);
+	}
+	toHexString(binary,pOutfile);
+
+}
+
+void Jsrr(FILE *pOutfile, char *A1, int n, symbol *ptr, char *label, int line) {
+	int binary[16] = {0,1,0,0,n,0,0,0,0,0,0,0,0,0,0,0};
+	int baseR;
+	int offset;
+	if (A1 == NULL) {
+		printf("Invalid Number of Operands");
+		exit(4);
+	}
+	
+	if(n == 0) {
+		baseR = toNume(A1);
+		if (baseR >= 0 && baseR <= 7) {
+			intTobin(&binary[7], baseR, 3);
+		}
+	}
+	else if (*A1 = '#') {
+		offset = toNume(A1);
+
+		if (offset >= -((2<<11)/2) && offset < ((2<<11)/2)) {
+			intTobin(&binary[5], offset, 11);
+		}
+		else {
+			printf("Error: Invalid Constant: %s", A1);
+			exit(3);
+		}
+	}
+	else if (findSym(ptr, label) == -1) {
+		printf("Error: %s is not define", A1);
+		exit(1);
+	}
+	else {
+		offset = findSym(ptr, label) - (line+1);
+		if (offset >= -((2<<11)/2) && offset < ((2<<11)/2)) {
+			intTobin(&binary[5], offset, 9);
+		}
+		else {
+			printf("Error: Out of Bound: %s", A1);
+			exit(4);
+		}
+	}
+
+	toHexString(binary,pOutfile);
+
+}
+
+void Lea(FILE *pOutfile, char *A1, char *A2, symbol *ptr, char *label, int line) {
+	int binary[16] = { 1,1,1,0};
+	int offset;
+	int dr;
+
+	if (A1 == NULL || A2 == NULL) {
+		printf("Invalid Number of Operands");
+		exit(4);
+	}
+
+	dr = toNume(A1);
+	if (dr >= 0 && dr <= 7) {
+		intTobin(&binary[4], dr, 3);
+	}
+	else {
+		printf("Invalid register: %s", A1);
+		exit(4);
+	}
+
+	if (*A2 = '#') {
+		offset = toNume(A2);
+		if (offset >= -256 && offset < 256) {
+			intTobin(&binary[7], offset, 9);
+		}
+		else {
+			printf("Error: Invalid Constant: %s", A2);
+			exit(3);
+		}
+		toHexString(binary, pOutfile);
+	}
+
+	else if (findSym(ptr, label) == -1) {
+		printf("Error: %s is not define", A2);
+		exit(1);
+	}
+
+	else {
+		offset = findSym(ptr, label) - (line+1);
+		if (offset >= -256 && offset < 256) {
+			intTobin(&binary[7], offset, 9);
+		}
+		else {
+			printf("Error: Out of Bound: %s", A1);
+			exit(4);
+		}
+		toHexString(binary, pOutfile);
+	}
+
 }
 
 void setSymbol(FILE *pInfile, symbol* ptr, int* len) {
@@ -634,6 +851,23 @@ void assemble(FILE *pInfile, FILE *pOutfile, symbol* ptr, int len) {
 			case LDB: Ld(pOutfile, Arg1, Arg2, Arg3, 0); break;
 			case LDW: Ld(pOutfile, Arg1, Arg2, Arg3, 1); break;
 			case NOT: Xor(pOutfile, Arg1, Arg2, "#-1", Arg4); break;
+			case RET: Return(pOutfile,1); break;
+			case RTI: Return(pOutfile,0); break;
+			case STB: St(pOutfile, Arg1, Arg2, Arg3, 0); break;
+			case STW: St(pOutfile, Arg1, Arg2, Arg3, 1); break;
+			case TRAP: Trap(pOutfile, Arg1); break;
+			case HALT: Trap(pOutfile, "x25"); break;
+			case LSHF: Shift(pOutfile, Arg1, Arg2, Arg3,0,0); break;
+			case RSHFL: Shift(pOutfile, Arg1, Arg2, Arg3,0,1); break;
+			case RSHFA: Shift(pOutfile, Arg1, Arg2, Arg3,1,1); break;
+			case JMP: Jmp(pOutfile,Arg1); break;
+			case JSR: Jsrr(pOutfile,Arg1,1,ptr, Label, lineNum); break;
+			case JSRR: Jsrr(pOutfile,Arg1,0,ptr, Label, lineNum); break;
+			case LEA: Lea(pOutfile, Arg1, Arg2, ptr, Label, lineNum); break;
+			default:
+				printf("Invalid Opcode: %s", Opcode);
+				exit(2);
+
 		}
 		lineNum++;
 
@@ -651,10 +885,11 @@ int main(int argc, char* argv[]) {
 	char *Arg4;
 	symbol* Table = NULL;
 	int length = 0;
-	/*	if (argc != 3) {
+	
+	if (argc != 4) {
 			printf("Incorrect number of arguments (found %d, expected 3)\n", (argc - 1));
 			exit(4);
-		}*/
+	}
 
 	char* prgName = argv[1];
 	char* iFileName = argv[2];
@@ -663,8 +898,8 @@ int main(int argc, char* argv[]) {
 	printf("program name = '%s'\n", prgName);
 	printf("i/o files are '%s' input and '%s' output\n", iFileName, oFileName);
 
-	infile = fopen("countOdd.asm", "r");
-	outfile = fopen("output.obj", "w");
+	infile = fopen(argv[2], "r");
+	outfile = fopen(argv[3], "w");
 
 	if (!infile) {
 		printf("Error: Cannot open file %s\n", argv[2]);
@@ -675,9 +910,9 @@ int main(int argc, char* argv[]) {
 		printf("Error: Cannot open file %s\n", argv[3]);
 		exit(4);
 	}
-	/*setSymbol(infile,Table, &length);*/
+	setSymbol(infile,Table, &length);
 	fclose(infile);
-	infile = fopen("countOddtest.asm", "r");
+	infile = fopen(argv[2], "r");
 	assemble(infile, outfile, Table, length);
 	fclose(infile);
 	fclose(outfile);
