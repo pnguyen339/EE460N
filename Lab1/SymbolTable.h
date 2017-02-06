@@ -1,7 +1,6 @@
 #ifndef Symbol_Table_H
 #define	Symbol_Table_H
 
-
 typedef struct SymbolTable {
 	int location;
 	char* name;
@@ -9,8 +8,8 @@ typedef struct SymbolTable {
 } symbol;
 
 
-void newSymbol(symbol* strt, int* length, char* Label, int loc);
-int findSym(symbol* strt, int length,char* Label);
+void newSymbol(symbol* strt, char* Label, int loc);
+int findSym(symbol* strt, char* Label);
 void destroy(symbol* strt);
 
 #endif

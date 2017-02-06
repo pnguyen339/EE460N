@@ -10,9 +10,11 @@
 	struct SymbolTable *nextptr;
 } symbol; */
 
-void newSymbol(symbol* strt, int* length, char* Label, int loc) {
+static int length = 0;
+
+void newSymbol(symbol* strt, char* Label, int loc) {
 	int i;
-	for (i = 0; i < *length; i++) {
+	for (i = 0; i < length; i++) {
 		strt = strt->nextptr;
 	}
 
@@ -23,12 +25,12 @@ void newSymbol(symbol* strt, int* length, char* Label, int loc) {
 	newsymbol->name = strncpy((char*)malloc(labellen + 1), Label, labellen + 1);
 	newsymbol->location = loc;
 	newsymbol->nextptr = NULL;
-	*length++;
+	length++;
 
 }
 
 
-int findSym(symbol* strt, int length, char* Label) {
+int findSym(symbol* strt, char* Label) {
 	int i;
 	for (i = 0; i < length; i++) {
 		if (strcmp(strt->name, Label) == 0)
@@ -40,7 +42,11 @@ int findSym(symbol* strt, int length, char* Label) {
 }
 
 void destroy(symbol* strt) {
-	if (strt->nextptr != NULL)
-		destroy(strt->nextptr);
+	symbol* temp;
+	while (strt->nextptr != NULL) {
+		temp = strt->nextptr;
+		free(strt);
+		strt = temp;
+	}
 	free(strt);
 }
