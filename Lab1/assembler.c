@@ -10,6 +10,8 @@
 FILE* infile = NULL;
 FILE* outfile = NULL;
 
+symbol* sym_table;
+
 char HEX(int number) {
 	switch (number) {
 	case 0:
@@ -888,7 +890,6 @@ int main(int argc, char* argv[]) {
 	char *Arg2;
 	char *Arg3;
 	char *Arg4;
-	symbol* Table = NULL;
 	int length = 0;
 	
 	if (argc != 3) {
@@ -913,11 +914,14 @@ int main(int argc, char* argv[]) {
 		printf("Error: Cannot open file %s\n", argv[3]);
 		exit(4);
 	}
-	setSymbol(infile,Table, &length);
+
+	sym_table = initTable();
+
+	setSymbol(infile, sym_table, &length);
 	fclose(infile);
 	infile = fopen(iFileName, "r");
-	assemble(infile, outfile, Table, length);
+	assemble(infile, outfile, sym_table, length);
 	fclose(infile);
 	fclose(outfile);
-	destroy(Table);
+	destroy(sym_table);
 }

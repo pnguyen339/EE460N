@@ -9,6 +9,7 @@ typedef struct SymbolTable {
 
 
 void newSymbol(symbol* strt, char* Label, int loc);
+symbol* initTable(void);
 int findSym(symbol* strt, char* Label);
 void destroy(symbol* strt);
 
