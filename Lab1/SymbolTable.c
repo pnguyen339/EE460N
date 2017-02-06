@@ -20,7 +20,7 @@ void newSymbol(symbol* strt, char* Label, int loc) {
 	}
 
 	symbol* newsymbol = (symbol*)malloc(sizeof(symbol));
-	strt = newsymbol;
+	strt->nextptr = newsymbol;
 
 	labellen = strlen(Label);
 	newsymbol->name = strncpy((char*)malloc(labellen + 1), Label, labellen + 1);

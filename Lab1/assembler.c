@@ -807,13 +807,13 @@ void setSymbol(FILE *pInfile, symbol* ptr, int* len) {
 	int lineNum = 0;
 	char line[MAX_LINE_LENGTH + 1];
 	char *Opcode;
-	char *Label = NULL;
+	char *Label;
 	char *Arg1;
 	char *Arg2;
 	char *Arg3;
 	char *Arg4;
 	while (readAndParse(pInfile, line, &Label, &Opcode, &Arg1, &Arg2, &Arg3, &Arg4) != DONE) {
-		if (*Label != NULL) {
+		if (Label != NULL) {
 			if (findSym(ptr, Label) == -1) {
 				newSymbol(ptr, Label, lineNum);
 				Label = NULL;
@@ -899,7 +899,6 @@ int main(int argc, char* argv[]) {
 	char* iFileName = argv[1];
 	char* oFileName = argv[2];
 
-	printf("program name = '%s'\n", prgName);
 	printf("i/o files are '%s' input and '%s' output\n", iFileName, oFileName);
 
 	infile = fopen(iFileName, "r");

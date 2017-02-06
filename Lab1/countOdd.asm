@@ -17,7 +17,7 @@ LP	LDB R3, R2, #0		; number
 	ADD R1, R1, #-1
 	BRp LOOP
 
-	STR R0 R2			; store in array once done
+	STR R0, R2			; store in array once done
 
 ADR .FILL x4000			; address to array
 	.END
