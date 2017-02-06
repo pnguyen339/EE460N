@@ -260,6 +260,9 @@ int findOpcode(char *ptr) {
 	else if (strcmp(ptr, ".fill") == 0) {
 		return FILL;
 	}
+	else if (strcmp(ptr, ".end") == 0) {
+		return END;
+	}
 	else
 		return -1;
 }
@@ -810,7 +813,7 @@ void setSymbol(FILE *pInfile, symbol* ptr, int* len) {
 	char *Arg3;
 	char *Arg4;
 	while (readAndParse(pInfile, line, &Label, &Opcode, &Arg1, &Arg2, &Arg3, &Arg4) != DONE) {
-		if (Label != NULL) {
+		if (*Label != NULL) {
 			if (findSym(ptr, Label) == -1) {
 				newSymbol(ptr, Label, lineNum);
 				Label = NULL;
@@ -864,6 +867,8 @@ void assemble(FILE *pInfile, FILE *pOutfile, symbol* ptr, int len) {
 			case JSR: Jsrr(pOutfile,Arg1,1,ptr, Label, lineNum); break;
 			case JSRR: Jsrr(pOutfile,Arg1,0,ptr, Label, lineNum); break;
 			case LEA: Lea(pOutfile, Arg1, Arg2, ptr, Label, lineNum); break;
+			case END: break;
+			case FILL: fprintf(pOutfile, "%x\n", toNume(Arg1));
 			default:
 				printf("Invalid Opcode: %s", Opcode);
 				exit(2);
@@ -886,20 +891,19 @@ int main(int argc, char* argv[]) {
 	symbol* Table = NULL;
 	int length = 0;
 	
-	if (argc != 4) {
-			printf("Incorrect number of arguments (found %d, expected 3)\n", (argc - 1));
+	if (argc != 3) {
+			printf("Incorrect number of arguments (found %d, expected 2)\n", (argc - 1));
 			exit(4);
 	}
 
-	char* prgName = argv[1];
-	char* iFileName = argv[2];
-	char* oFileName = argv[3];
+	char* iFileName = argv[1];
+	char* oFileName = argv[2];
 
 	printf("program name = '%s'\n", prgName);
 	printf("i/o files are '%s' input and '%s' output\n", iFileName, oFileName);
 
-	infile = fopen(argv[2], "r");
-	outfile = fopen(argv[3], "w");
+	infile = fopen(iFileName, "r");
+	outfile = fopen(oFileName, "w");
 
 	if (!infile) {
 		printf("Error: Cannot open file %s\n", argv[2]);
@@ -912,7 +916,7 @@ int main(int argc, char* argv[]) {
 	}
 	setSymbol(infile,Table, &length);
 	fclose(infile);
-	infile = fopen(argv[2], "r");
+	infile = fopen(iFileName, "r");
 	assemble(infile, outfile, Table, length);
 	fclose(infile);
 	fclose(outfile);

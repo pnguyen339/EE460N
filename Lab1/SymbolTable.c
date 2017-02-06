@@ -14,14 +14,15 @@ static int length = 0;
 
 void newSymbol(symbol* strt, char* Label, int loc) {
 	int i;
+	int labellen;
 	for (i = 0; i < length; i++) {
 		strt = strt->nextptr;
 	}
 
 	symbol* newsymbol = (symbol*)malloc(sizeof(symbol));
-	strt->nextptr = newsymbol;
+	strt = newsymbol;
 
-	int labellen = strlen(Label);
+	labellen = strlen(Label);
 	newsymbol->name = strncpy((char*)malloc(labellen + 1), Label, labellen + 1);
 	newsymbol->location = loc;
 	newsymbol->nextptr = NULL;
