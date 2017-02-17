@@ -1,12 +1,8 @@
 /*
-    Remove all unnecessary lines (including this one) 
-    in this comment.
-    REFER TO THE SUBMISSION INSTRUCTION FOR DETAILS
-
-    Name 1: Full name of the first partner 
-    Name 2: Full name of the second partner
-    UTEID 1: UT EID of the first partner
-    UTEID 2: UT EID of the second partner
+    Name 1: Eric Wang
+    Name 2: Peter Nguyen
+    UTEID 1: efw345
+    UTEID 2: ppn229
 */
 
 /***************************************************************/
@@ -406,16 +402,3 @@ int main(int argc, char *argv[]) {
 
 /***************************************************************/
 
-
-
-void process_instruction(){
-  /*  function: process_instruction
-   *  
-   *    Process one instruction at a time  
-   *       -Fetch one instruction
-   *       -Decode 
-   *       -Execute
-   *       -Update NEXT_LATCHES
-   */     
-
-}
