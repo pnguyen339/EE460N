@@ -18,6 +18,7 @@ int MEMORY[WORDS_IN_MEM][2];
 /* Useful constants */
 #define NUM_INSTR	16
 #define WORD		16
+#define LR			7
 
 /* Opcode */
 #define DECODE(x)	((x & 0xF000u) >> 12)
@@ -30,6 +31,8 @@ int MEMORY[WORDS_IN_MEM][2];
 /* Immediate values at end of instruction */
 #define CONST_11(x)	(x & 0x07FFu)
 #define CONST_9(x)	(x & 0x01FFu)
+#define CONST_8(x)	(x & 0x00FFu)
+#define CONST_6(x)	(x & 0x003Fu)
 #define CONST_5(x)	(x & 0x001Fu)
 #define CONST_4(x)	(x & 0x000Fu)
 
@@ -69,8 +72,29 @@ void setConditionCodes(System_Latches* latches, int value) {
 	}
 }
 
+int getWordAt(int byteaddr) {
+	int result = 0;
+
+	if (byteaddr % 2 == 1) {
+		/* illegal operand address exception */
+	}
+
+	result |= MEMORY[byteaddr][1] << (WORD / 2);
+	result |= MEMORY[byteaddr][0];
+
+	return result;
+}
+
+int getByteAt(int byteaddr) {
+	int result = 0;
+
+	result |= MEMORY[byteaddr >> 1][byteaddr % 2];
+
+	return result;
+}
+
 System_Latches op_br(int instr) {
-	System_Latches next = CURRENT_LATCHES;
+	System_Latches next = NEXT_LATCHES;
 	
 	if (	(next.N && BIT_11(instr)) ||
 			(next.Z && BIT_10(instr)) ||
@@ -83,7 +107,7 @@ System_Latches op_br(int instr) {
 }
 
 System_Latches op_add(int instr) {
-	System_Latches next = CURRENT_LATCHES;
+	System_Latches next = NEXT_LATCHES;
 	int result;
 
 	if (BIT_5(instr)) {				/* immediate value */
@@ -110,7 +134,9 @@ System_Latches op_stb(int instr) {
 }
 
 System_Latches op_jsr(int instr) {
-	System_Latches next = CURRENT_LATCHES;
+	System_Latches next = NEXT_LATCHES;
+
+	int temp = next.PC;
 
 	if (BIT_11(instr)) {			/* immediate value */
 		next.PC = Low16bits(next.PC + (sext32(CONST_11(instr), 11) << 1));
@@ -119,11 +145,13 @@ System_Latches op_jsr(int instr) {
 		next.PC = next.REGS[OP2(instr)];
 	}
 
+	next.REGS[LR] = temp;
+
 	return next;
 }
 
 System_Latches op_and(int instr) {
-	System_Latches next = CURRENT_LATCHES;
+	System_Latches next = NEXT_LATCHES;
 	int result;
 
 	if (BIT_5(instr)) {				/* immediate value */
@@ -154,7 +182,7 @@ System_Latches op_rti(int instr) {	/* not required */
 }
 
 System_Latches op_xor(int instr) {
-	System_Latches next = CURRENT_LATCHES;
+	System_Latches next = NEXT_LATCHES;
 	int result;
 
 	if (BIT_5(instr)) {				/* immediate value */
@@ -177,13 +205,13 @@ System_Latches op_invalid(int instr) { /* I have no idea what goes in here */
 }
 
 System_Latches op_jmp(int instr) {
-	System_Latches next = CURRENT_LATCHES;
+	System_Latches next = NEXT_LATCHES;
 
 	next.PC = next.REGS[OP2(instr)];
 }
 
 System_Latches op_shf(int instr) {
-	System_Latches next = CURRENT_LATCHES;
+	System_Latches next = NEXT_LATCHES;
 	int result;
 
 	if (BIT_4(instr)) {				/* right shift */
@@ -207,11 +235,24 @@ System_Latches op_shf(int instr) {
 }
 
 System_Latches op_lea(int instr) {
+	System_Latches next = NEXT_LATCHES;
+	int result;
 
+	result = next.PC + (sext32(CONST_9(instr), 9) << 1);
+	
+	result = Low16bits(result);
+	next.REGS[OP1(instr)] = result;
+
+	/* setConditionCodes(&next, result)		not meant to set this */
 }
 
 System_Latches op_trap(int instr) {
+	System_Latches next = NEXT_LATCHES;
 
+	next.REGS[LR] = next.PC;
+	next.PC = getWordAt(CONST_8(instr) << 1);
+
+	return next;
 }
 
 System_Latches (*execute[NUM_INSTR])(int) = {	op_br , op_add, op_ldb, op_stb,
@@ -221,6 +262,8 @@ System_Latches (*execute[NUM_INSTR])(int) = {	op_br , op_add, op_ldb, op_stb,
 
 void process_instruction() {
 	int x = fetch(&x);
+
+	NEXT_LATCHES.PC += 2;
 
 	NEXT_LATCHES = (*execute[DECODE(x)])(x);
 }
