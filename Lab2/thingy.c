@@ -76,7 +76,7 @@ System_Latches op_br(int instr) {
 			(next.Z && BIT_10(instr)) ||
 			(next.P && BIT_9(instr))	)
 	{
-		next.PC = Low16bits(next.PC + sext32(CONST_9(instr), 9));
+		next.PC = Low16bits(next.PC + (sext32(CONST_9(instr), 9)) << 1);
 	}
 
 	return next;
@@ -110,7 +110,16 @@ System_Latches op_stb(int instr) {
 }
 
 System_Latches op_jsr(int instr) {
+	System_Latches next = CURRENT_LATCHES;
 
+	if (BIT_11(instr)) {			/* immediate value */
+		next.PC = Low16bits(next.PC + (sext32(CONST_11(instr), 11) << 1));
+	}
+	else {							/* register */
+		next.PC = next.REGS[OP2(instr)];
+	}
+
+	return next;
 }
 
 System_Latches op_and(int instr) {
@@ -168,23 +177,25 @@ System_Latches op_invalid(int instr) { /* I have no idea what goes in here */
 }
 
 System_Latches op_jmp(int instr) {
+	System_Latches next = CURRENT_LATCHES;
 
+	next.PC = next.REGS[OP2(instr)];
 }
 
 System_Latches op_shf(int instr) {
 	System_Latches next = CURRENT_LATCHES;
 	int result;
 
-	if (BIT_4(instr)) {				/* left shift */
-		result = next.REGS[OP2(instr)] << CONST_4(instr);
-	}
-	else {							/* right shift: */
+	if (BIT_4(instr)) {				/* right shift */
 		if (BIT_5(instr)) {			/* arithmetic */
 			result = sext32(next.REGS[OP2(instr)], WORD) >> CONST_4(instr);
 		}
 		else {						/* logical */
 			result = next.REGS[OP2(instr)] >> CONST_4(instr);
 		}
+	}
+	else {							/* left shift: */
+		result = next.REGS[OP2(instr)] << CONST_4(instr);
 	}
 
 	result = Low16bits(result);
