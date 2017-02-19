@@ -472,8 +472,8 @@ int getWordAt(int byteaddr) {
     /* illegal operand address exception */
   }
 
-  result |= MEMORY[byteaddr][1] << 8;   /* 8 bits in a byte */
-  result |= MEMORY[byteaddr][0];
+  result |= MEMORY[byteaddr >> 1][1] << 8;   /* 8 bits in a byte */
+  result |= MEMORY[byteaddr >> 1][0];
 
   return result;
 }
@@ -492,8 +492,8 @@ void setWordAt(int byteaddr, int value) {
     /* illegal operand address exception */
   }
 
-  MEMORY[byteaddr][1] = High8bits(value);
-  MEMORY[byteaddr][0] = Low8bits(value);
+  MEMORY[byteaddr >> 1][1] = High8bits(value);
+  MEMORY[byteaddr >> 1][0] = Low8bits(value);
 
 }
 
