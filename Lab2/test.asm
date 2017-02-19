@@ -1,0 +1,17 @@
+	.ORIG X4000
+	AND R1, R1, #0
+	LEA R0, B
+	ADD R1, R1, #2
+LOOP 	ADD R1, R1, R1
+	ADD RO, R0, #-1
+	BRNZ LOOP
+	HALT
+
+
+
+
+
+
+
+
+B 	.FILL #5
