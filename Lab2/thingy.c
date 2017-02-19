@@ -15,6 +15,10 @@ int MEMORY[WORDS_IN_MEM][2];
 
 /********************* DEFINES ***********************/
 
+/* High and low bytes */
+#define Low8bits(x)	 (x & 0x00FFu)
+#define High8bits(x) ((x & 0xFF00u) >> 8)
+
 /* Useful constants */
 #define NUM_INSTR	16
 #define WORD		16
@@ -79,7 +83,7 @@ int getWordAt(int byteaddr) {
 		/* illegal operand address exception */
 	}
 
-	result |= MEMORY[byteaddr][1] << (WORD / 2);
+	result |= MEMORY[byteaddr][1] << 8;		/* 8 bits in a byte */
 	result |= MEMORY[byteaddr][0];
 
 	return result;
@@ -93,20 +97,20 @@ int getByteAt(int byteaddr) {
 	return result;
 }
 
-void storeWordAt(int byteaddr, int value) {
+void setWordAt(int byteaddr, int value) {
 
 	if (byteaddr % 2 == 1) {
 		/* illegal operand address exception */
 	}
 
-	MEMORY[byteaddr][1] = (value & xFF00) >> (WORD / 2); 
-	MEMORY[byteaddr][0] = (value&x00FF);
+	MEMORY[byteaddr][1] = High8bits(value);
+	MEMORY[byteaddr][0] = Low8bits(value);
 
 }
 
-void storeByteAt(int byteaddr, int value) {
+void setByteAt(int byteaddr, int value) {
 	
-	MEMORY[byteaddr >> 1][byteaddr % 2] = (value & x00FF);
+	MEMORY[byteaddr >> 1][byteaddr % 2] = Low8bits(value);
 
 }
 
@@ -145,23 +149,24 @@ System_Latches op_add(int instr) {
 System_Latches op_ldb(int instr) {
 	System_Latches next = NEXT_LATCHES;
 	
-	int mDR = Low16bits(getByteAt(next.REGS[OP2(instr)] + sext32(OP3(instr), 6)));
-	next.REGS[OP1(instr)] = mDR;
+	int result = next.REGS[OP2(instr)] + sext32(CONST_6(instr), 6);		/* addr */
+	result = Low8bits(getByteAt(result));
+
+	next.REGS[OP1(instr)] = result;
 	
-	setConditionCodes(&next, mDR);
+	setConditionCodes(&next, result);
 
 	return next;
-
 }
 
 System_Latches op_stb(int instr) {
 	System_Latches next = NEXT_LATCHES;
 	
-	storeByteAt((next.REGS[OP2(instr)] + sext32(OP3(instr), 6)), next.REGS[OP1(instr)]);
+	int addr = next.REGS[OP2(instr)] + sext32(CONST_6(instr), 6);
+
+	setByteAt(addr, Low8bits(next.REGS[OP1(instr)]));
 	
-
 	return next;
-
 }
 
 System_Latches op_jsr(int instr) {
@@ -203,10 +208,12 @@ System_Latches op_and(int instr) {
 System_Latches op_ldw(int instr) {
 	System_Latches next = NEXT_LATCHES;
 	
-	int mDR = Low16bits(getWordAt(next.REGS[OP2(instr)] + sext32(OP3(instr), 6)));
-	next.REGS[OP1(instr)] = mDR;
+	int result = next.REGS[OP2(instr)] + (sext32(OP3(instr), 6) << 1);		/* addr */
+	result = Low16bits(getWordAt(result));
+
+	next.REGS[OP1(instr)] = result;
 	
-	setConditionCodes(&next, mDR);
+	setConditionCodes(&next, result);
 
 	return next;
 }
@@ -214,9 +221,9 @@ System_Latches op_ldw(int instr) {
 System_Latches op_stw(int instr) {
 	System_Latches next = NEXT_LATCHES;
 	
-	storeWordAt((next.REGS[OP2(instr)] + sext32(OP3(instr), 6)), next.REGS[OP1(instr)]);
+	int addr = next.REGS[OP2(instr)] + (sext32(CONST_6(instr), 6) << 1);
+	setWordAt(addr, next.REGS[OP1(instr)]);
 	
-
 	return next;
 }
 
@@ -287,6 +294,8 @@ System_Latches op_lea(int instr) {
 	next.REGS[OP1(instr)] = result;
 
 	/* setConditionCodes(&next, result)		not meant to set this */
+
+	return next;
 }
 
 System_Latches op_trap(int instr) {
