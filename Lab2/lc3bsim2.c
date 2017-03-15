@@ -544,7 +544,7 @@ System_Latches op_ldb(int instr) {
   System_Latches next = NEXT_LATCHES;
   
   int result = next.REGS[OP2(instr)] + sext32(CONST_6(instr), 6);   /* addr */
-  result = Low8bits(getByteAt(result));
+  result = Low16bits(sext32(getByteAt(result), 8));
 
   next.REGS[OP1(instr)] = result;
   
