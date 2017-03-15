@@ -1,17 +1,22 @@
-#include "lc3bsim2.c"		// obviously get rid of this later
+//#include "lc3bsim2.c"		// obviously get rid of this later
 
 /********************REMOVE THIS**********************/
+#define FALSE 0
+#define TRUE  1
+#define LC_3b_REGS 8
+#define Low16bits(x) ((x) & 0xFFFF)
+#define WORDS_IN_MEM    0x08000 
 System_Latches CURRENT_LATCHES, NEXT_LATCHES;
 int MEMORY[WORDS_IN_MEM][2];
 /********************REMOVE THIS**********************/
-	//typedef struct System_Latches_Struct {
+typedef struct System_Latches_Struct {
 
-	//	int PC,                /* program counter */
-	//		N,                   /* n condition bit */
-	//		Z,                   /* z condition bit */
-	//		P;                   /* p condition bit */
-	//	int REGS[LC_3b_REGS];  /* register file. */
-	//} System_Latches;
+	int PC,                /* program counter */
+		N,                   /* n condition bit */
+		Z,                   /* z condition bit */
+		P;                   /* p condition bit */
+	int REGS[LC_3b_REGS];  /* register file. */
+} System_Latches;
 
 /********************* DEFINES ***********************/
 
@@ -112,6 +117,10 @@ void setByteAt(int byteaddr, int value) {
 	
 	MEMORY[byteaddr >> 1][byteaddr % 2] = Low8bits(value);
 
+}
+
+void fetch(int* x) {
+	*x = getWordAt(CURRENT_LATCHES.PC);
 }
 
 System_Latches op_br(int instr) {
@@ -313,7 +322,8 @@ System_Latches (*execute[NUM_INSTR])(int) = {	op_br , op_add, op_ldb, op_stb,
 												op_jmp, op_shf, op_lea, op_trap };
 
 void process_instruction() {
-	int x = fetch(&x);
+	int x;
+	fetch(&x);
 
 	NEXT_LATCHES.PC += 2;
 
