@@ -626,15 +626,15 @@ void eval_micro_sequencer() {
     }
     
     else if(GetCOND(CURRENT_LATCHES.MICROINSTRUCTION) == 1) {
-        NEXT_LATCHES.STATE_NUMBER = (GetJ(CURRENT_LATCHES.MICROINSTRUCTION) & -0x02) ^ (CURRENT_LATCHES.READY<<1);
+        NEXT_LATCHES.STATE_NUMBER = (GetJ(CURRENT_LATCHES.MICROINSTRUCTION) & 0xFD) ^ (CURRENT_LATCHES.READY<<1);
     }
     
     else if(GetCOND(CURRENT_LATCHES.MICROINSTRUCTION) == 2) {
-        NEXT_LATCHES.STATE_NUMBER = (GetJ(CURRENT_LATCHES.MICROINSTRUCTION) & -0x04) ^ (CURRENT_LATCHES.BEN<<2);
+        NEXT_LATCHES.STATE_NUMBER = (GetJ(CURRENT_LATCHES.MICROINSTRUCTION) & 0xFB) ^ (CURRENT_LATCHES.BEN<<2);
     }
     
     else if(GetCOND(CURRENT_LATCHES.MICROINSTRUCTION) == 3) {
-        NEXT_LATCHES.STATE_NUMBER = (GetJ(CURRENT_LATCHES.MICROINSTRUCTION) & -0x01) ^ BIT_11(CURRENT_LATCHES.IR);
+        NEXT_LATCHES.STATE_NUMBER = (GetJ(CURRENT_LATCHES.MICROINSTRUCTION) & 0xFE) ^ BIT_11(CURRENT_LATCHES.IR);
     }
     
     else {
@@ -646,6 +646,7 @@ void eval_micro_sequencer() {
 }
 int DATA_IN_MEM;
 int MEM_CYC_LEFT;
+int MEMBUSY = 0;
 
 void cycle_memory() {
  
@@ -657,12 +658,13 @@ void cycle_memory() {
    */
     if(GetMIO_EN(CURRENT_LATCHES.MICROINSTRUCTION) == 1) {
         
-        if(CURRENT_LATCHES.READY == 1) {
+        if(MEMBUSY == 0) {
+            MEMBUSY = 1;
             NEXT_LATCHES.READY = 0;
             MEM_CYC_LEFT = MEM_CYCLES;
         }
         
-        if(MEM_CYC_LEFT == 1) {
+        if(MEM_CYC_LEFT == 1 ) {
             NEXT_LATCHES.READY = 1;
             int byteaddr = CURRENT_LATCHES.MAR;
             
@@ -680,6 +682,8 @@ void cycle_memory() {
                     DATA_IN_MEM |= MEMORY[byteaddr >> 1][0];
                     
                  }*/
+                    DATA_IN_MEM |= MEMORY[byteaddr >> 1][1] << 8;  
+                    DATA_IN_MEM |= MEMORY[byteaddr >> 1][0];
             }
 
             else {
@@ -695,7 +699,9 @@ void cycle_memory() {
             }
         }
 
-        MEM_CYC_LEFT--;
+        MEM_CYC_LEFT = MEM_CYC_LEFT-1;
+        if(MEM_CYC_LEFT == 0)
+            MEMBUSY = 0;
     }
 }
 
