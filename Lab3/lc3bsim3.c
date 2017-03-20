@@ -656,7 +656,8 @@ void cycle_memory() {
    * If fourth, we need to latch Ready bit at the end of 
    * cycle to prepare microsequencer for the fifth cycle.  
    */
-    if(GetMIO_EN(CURRENT_LATCHES.MICROINSTRUCTION) == 1) {
+    NEXT_LATCHES.READY = 0;
+	if(GetMIO_EN(CURRENT_LATCHES.MICROINSTRUCTION) == 1) {
         
         if(MEMBUSY == 0) {
             MEMBUSY = 1;
@@ -682,6 +683,7 @@ void cycle_memory() {
                     DATA_IN_MEM |= MEMORY[byteaddr >> 1][0];
                     
                  }*/
+            		DATA_IN_MEM = 0;
                     DATA_IN_MEM |= MEMORY[byteaddr >> 1][1] << 8;  
                     DATA_IN_MEM |= MEMORY[byteaddr >> 1][0];
             }
@@ -700,7 +702,7 @@ void cycle_memory() {
         }
 
         MEM_CYC_LEFT = MEM_CYC_LEFT-1;
-        if(MEM_CYC_LEFT == 0)
+        if(MEM_CYC_LEFT == -1)
             MEMBUSY = 0;
     }
 }
@@ -724,6 +726,8 @@ int adder_ADDR1_ADDR2() {
             ADDR1 = CURRENT_LATCHES.REGS[OP2(CURRENT_LATCHES.IR)];
         }
     }
+    
+    ADDR2 = ADDR2 << GetLSHF1(CURRENT_LATCHES.MICROINSTRUCTION);
 
     return Low16bits(ADDR2 + ADDR1); 
 
