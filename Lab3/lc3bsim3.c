@@ -1,6 +1,6 @@
 /*
-    Name 1: Your full name
-    UTEID 1: Your UT EID
+    Name 1: Peter Nguyen
+    UTEID 1: ppn229
 */
 
 /***************************************************************/
@@ -662,7 +662,7 @@ void cycle_memory() {
         if(MEMBUSY == 0) {
             MEMBUSY = 1;
             NEXT_LATCHES.READY = 0;
-            MEM_CYC_LEFT = MEM_CYCLES;
+            MEM_CYC_LEFT = MEM_CYCLES-1;
         }
         
         if(MEM_CYC_LEFT == 1 ) {
