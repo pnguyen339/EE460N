@@ -10,7 +10,8 @@
 		LDW R0,R0,#0
 		AND R3,R3,#0
 		AND R4,R4,#0
-		ADD R4,R4,#20
+		ADD R4,R4,#10
+		ADD R4,R4,#10
 
 LOOP	LDB R1,R0,#0
 		LDB R2,R0,#1
