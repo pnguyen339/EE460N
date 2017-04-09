@@ -1,7 +1,15 @@
 .ORIG x4000
 
+<<<<<<< HEAD
+LEA R0, B
+LDW R0,R0,#0
+LEA R4, S
+LDW R4,R4,#0
+JSR TRS
+=======
 LEA R0, TRS
 JSRR R0
+>>>>>>> 71344a803363860fa01c4f248818ac90313f065c
 HALT
 
 TRS AND R1, R1, #0
@@ -10,10 +18,19 @@ LDW R2, R2, #0
 ADD R1, R1, #2
 LOOP    ADD R1, R1, R1
 ADD R2, R2, #-1
+<<<<<<< HEAD
+BRz DONE
+BR LOOP
+DONE RET
+
+B       .FILL #5
+S	.FILL #1
+=======
 BRp LOOP
 RET
 
 B       .FILL #5
+>>>>>>> 71344a803363860fa01c4f248818ac90313f065c
 .END
 
 
