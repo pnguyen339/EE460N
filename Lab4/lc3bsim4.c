@@ -570,9 +570,10 @@ void initialize(char *ucode_filename, char *program_filename, int num_prog_files
     memcpy(CURRENT_LATCHES.MICROINSTRUCTION, CONTROL_STORE[INITIAL_STATE_NUMBER], sizeof(int)*CONTROL_STORE_BITS);
     CURRENT_LATCHES.SSP = 0x3000; /* Initial value of system stack pointer */
     CURRENT_LATCHES.INT_Signal = 0; /* Initial value of Interrupt Signal*/
+    CURRENT_LATCHES.INTV = 0x01u;
     CURRENT_LATCHES.EXC = 0; /* Initial value of EXC */
     CURRENT_LATCHES.PRIV = 1; /*initialize the lc3 into User Mode */
-    CURRENT_LATCHES.TRAP_FLAG = 0; /*Initialize th Trap Flag to 0*/
+    CURRENT_LATCHES.TRAP_FLAG = 0; /*Initialize the Trap Flag to 0*/
 
     NEXT_LATCHES = CURRENT_LATCHES;
 
@@ -696,10 +697,10 @@ void eval_micro_sequencer() {
         NEXT_LATCHES.STATE_NUMBER = (GetJ(CURRENT_LATCHES.MICROINSTRUCTION) & 0xFE) ^ BIT_11(CURRENT_LATCHES.IR);
     }
     else if(GetCOND(CURRENT_LATCHES.MICROINSTRUCTION) == 4) {
-        NEXT_LATCHES.STATE_NUMBER = (GetJ(CURRENT_LATCHES.MICROINSTRUCTION)) ^ (CURRENT_LATCHES.EXC ^ CURRENT_LATCHES.INT_Signal);
+        NEXT_LATCHES.STATE_NUMBER = (GetJ(CURRENT_LATCHES.MICROINSTRUCTION)) ^ ((CURRENT_LATCHES.EXC ^ CURRENT_LATCHES.INT_Signal)<<3);
     }
     else if(GetCOND(CURRENT_LATCHES.MICROINSTRUCTION) == 6) {
-        NEXT_LATCHES.STATE_NUMBER = (GetJ(CURRENT_LATCHES.MICROINSTRUCTION)) ^ (CURRENT_LATCHES.PRIV);
+        NEXT_LATCHES.STATE_NUMBER = (GetJ(CURRENT_LATCHES.MICROINSTRUCTION)) ^ (CURRENT_LATCHES.PRIV << 4);
     }
     else {
         NEXT_LATCHES.STATE_NUMBER = GetJ(CURRENT_LATCHES.MICROINSTRUCTION);
@@ -925,10 +926,10 @@ void eval_bus_drivers() {
     /* new Gate*/
     else if(GetGATEPP(CURRENT_LATCHES.MICROINSTRUCTION) == 1) {
         if(GetPP(CURRENT_LATCHES.MICROINSTRUCTION) == 1) {
-            TEMP = CURRENT_LATCHES.REGS[GetSR1MUX(CURRENT_LATCHES.MICROINSTRUCTION)] + 2;
+            TEMP = CURRENT_LATCHES.REGS[6] + 2;
         }
         else {
-            TEMP = CURRENT_LATCHES.REGS[GetSR1MUX(CURRENT_LATCHES.MICROINSTRUCTION)] - 2;
+            TEMP = CURRENT_LATCHES.REGS[6] - 2;
         }
     }
     
@@ -947,10 +948,10 @@ void eval_bus_drivers() {
 
     else if (GetGATEVector(CURRENT_LATCHES.MICROINSTRUCTION) == 1) {
         if(CURRENT_LATCHES.EXC == 1) {
-            TEMP = 0x02 + (CURRENT_LATCHES.EXCV<<1);
+            TEMP = 0x0200 + (CURRENT_LATCHES.EXCV<<1);
         }
         else {
-            TEMP = 0x02 + (CURRENT_LATCHES.INTV<<1);
+            TEMP = 0x0200 + (CURRENT_LATCHES.INTV<<1);
         }
     }
 
@@ -1027,6 +1028,9 @@ void latch_datapath_values() {
     if (GetLD_IR(CURRENT_LATCHES.MICROINSTRUCTION) == 1) {
         
         NEXT_LATCHES.IR = BUS;
+        if(DECODE(BUS) == 0xFu) {
+                	NEXT_LATCHES.TRAP_FLAG = 1;
+        }
     }
     
     if (GetLD_PC(CURRENT_LATCHES.MICROINSTRUCTION) == 1) {
@@ -1061,8 +1065,11 @@ void latch_datapath_values() {
         if(GetDRMUX(CURRENT_LATCHES.MICROINSTRUCTION) == 0) {
             NEXT_LATCHES.REGS[OP1(CURRENT_LATCHES.IR)] = BUS;
         }
-        else {
+        else if(GetDRMUX(CURRENT_LATCHES.MICROINSTRUCTION) == 1){
             NEXT_LATCHES.REGS[LR] = BUS;
+        }
+        else if(GetDRMUX(CURRENT_LATCHES.MICROINSTRUCTION) == 2){
+            NEXT_LATCHES.REGS[6] = BUS;
         }
     }
     
@@ -1077,7 +1084,7 @@ void latch_datapath_values() {
 
 
     if(GetLD_USPSAVED(CURRENT_LATCHES.MICROINSTRUCTION) == 1) {
-        NEXT_LATCHES.USPSAVED = CURRENT_LATCHES.REGS[GetSR1MUX(CURRENT_LATCHES.MICROINSTRUCTION)];
+        NEXT_LATCHES.USPSAVED = CURRENT_LATCHES.REGS[6];
     }
 
     if(GetLD_PRIV(CURRENT_LATCHES.MICROINSTRUCTION) == 1) {
@@ -1098,18 +1105,19 @@ void latch_datapath_values() {
         int Opcode = DECODE(CURRENT_LATCHES.IR);        
         if(Opcode == 0x0A || Opcode == 0x0B)
             UnknownOP = 1;
+        if(GetLD_MAR(CURRENT_LATCHES.MICROINSTRUCTION) == 1) {
+			if(CURRENT_LATCHES.PRIV == 1 && CURRENT_LATCHES.TRAP_FLAG == 0) {
+				if(Opcode == 0x08)
+					Protection = 1;
 
-        if(CURRENT_LATCHES.PRIV == 1 || CURRENT_LATCHES.TRAP_FLAG == 0) {
-            if(Opcode == 0x08)
-                Protection = 1;
+				if(BUS >= 0x00u && BUS < 0x3000u) {
+					Protection = 1;
+				}
+			}
 
-            if(CURRENT_LATCHES.MAR>= 0x00u && CURRENT_LATCHES.MAR < 0x3000u) {
-                Protection = 1;
-            }    
-        }
-
-        if(CURRENT_LATCHES.MAR %2 != 0) {
-            Unalligned = 1;
+			if(BUS %2 != 0 && GetDATA_SIZE(CURRENT_LATCHES.MICROINSTRUCTION) == 1) {
+				Unalligned = 1;
+			}
         }
 
         if(Protection == 1){
@@ -1117,11 +1125,11 @@ void latch_datapath_values() {
             NEXT_LATCHES.EXC = 1;
         }
         else if(Unalligned == 1) {
-            NEXT_LATCHES.EXCV = 0x02;
+            NEXT_LATCHES.EXCV = 0x03;
             NEXT_LATCHES.EXC = 1;
         }
         else if(UnknownOP == 1) {
-            NEXT_LATCHES.EXCV = 0x02;
+            NEXT_LATCHES.EXCV = 0x04;
             NEXT_LATCHES.EXC = 1;
         }
     }
