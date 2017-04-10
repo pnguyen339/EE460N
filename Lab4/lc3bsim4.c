@@ -255,6 +255,8 @@ void cycle() {
   eval_bus_drivers();
   drive_bus();
   latch_datapath_values();
+  if(CYCLE_COUNT  == 299)
+	  NEXT_LATCHES.INT_Signal = 1;
 
   CURRENT_LATCHES = NEXT_LATCHES;
 
@@ -445,9 +447,9 @@ void init_control_store(char *ucode_filename) {
 
     /* Open the micro-code file. */
     if ((ucode = fopen(ucode_filename, "r")) == NULL) {
-	printf("Error: Can't open micro-code file %s\n", ucode_filename);
-	exit(-1);
-    }
+    	printf("Error: Can't open micro-code file %s\n", ucode_filename);
+    	exit(-1);
+        }
 
     /* Read a line for each row in the control store. */
     for(i = 0; i < CONTROL_STORE_ROWS; i++) {
@@ -851,8 +853,10 @@ int pass(int instr) {
     if(GetSR1MUX(CURRENT_LATCHES.MICROINSTRUCTION) == 0) {
         return CURRENT_LATCHES.REGS[OP1(instr)];
     }
-    else
+    else if(GetSR1MUX(CURRENT_LATCHES.MICROINSTRUCTION) == 1) {
         return CURRENT_LATCHES.REGS[OP2(instr)];
+    }
+    else return CURRENT_LATCHES.REGS[6];
 }
 
 int ALU_logic() {
@@ -1130,6 +1134,7 @@ void latch_datapath_values() {
         }
         else if(UnknownOP == 1) {
             NEXT_LATCHES.EXCV = 0x04;
+            NEXT_LATCHES.IR = 0;
             NEXT_LATCHES.EXC = 1;
         }
     }
