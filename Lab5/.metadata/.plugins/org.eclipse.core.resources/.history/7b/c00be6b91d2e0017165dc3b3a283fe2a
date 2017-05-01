@@ -105,6 +105,7 @@ enum CS_BITS {
 /* Functions to get at the control bits.                       */
 /***************************************************************/
 int GetIRD(int *x)           { return(x[IRD]); }
+//int GetCOND(int *x)          { return((x[COND1] << 1) + x[COND0]); }
 int GetJ(int *x)             { return((x[J5] << 5) + (x[J4] << 4) +
 				      (x[J3] << 3) + (x[J2] << 2) +
 				      (x[J1] << 1) + x[J0]); }
@@ -121,6 +122,8 @@ int GetGATE_ALU(int *x)      { return(x[GATE_ALU]); }
 int GetGATE_MARMUX(int *x)   { return(x[GATE_MARMUX]); }
 int GetGATE_SHF(int *x)      { return(x[GATE_SHF]); }
 int GetPCMUX(int *x)         { return((x[PCMUX1] << 1) + x[PCMUX0]); }
+//int GetDRMUX(int *x)         { return(x[DRMUX]); }
+//int GetSR1MUX(int *x)        { return(x[SR1MUX]); }
 int GetADDR1MUX(int *x)      { return(x[ADDR1MUX]); }
 int GetADDR2MUX(int *x)      { return((x[ADDR2MUX1] << 1) + x[ADDR2MUX0]); }
 int GetMARMUX(int *x)        { return(x[MARMUX]); }
@@ -420,47 +423,7 @@ void get_command(FILE * dumpsim_file) {
 	help();
 	break;
     case 'Q':
-    case   ;SAVE REGISTERS ONTO STACK
-    ADD R6, R6, #-2;
-    STW R3, R6, #0;
-    ADD R6, R6, #-2;
-    STW R2, R6, #0;
-    ADD R6, R6, #-2;
-    STW R1, R6, #0;
-    ADD R6, R6, #-2;
-    STW R0, R6, #0;
-
-    LEA R1, MASK
-    LDW R1, R1, #0 ; R1 <- xFFFD
-    LEA R2, START
-    LDW R2, R2, #0 ; R2 <- x1000
-    LEA R0, COUNTER
-    LDW R0, R0, #0 ; R0 <- #128
-
-LOOP        BRz DONE
-    LDW R3, R2, #0 ; R3 <- PTE
-    AND R3, R3, R1 ; CLEAR REFERENCE BIT
-    STW R3, R2, #0 ;
-    ADD R2, R2, #2 ; INCREMENT ADDRESS BY WORD
-    ADD R0, R0, #-1; DECREMENT COUNTER
-    BR LOOP
-
-    ;RESTORE REGISTERS
-DONE        LDW R0, R6, #0;
-    ADD R6, R6, #2;
-    LDW R1, R6, #0;
-    ADD R6, R6, #2;
-    LDW R2, R6, #0;
-    ADD R6, R6, #2;
-    LDW R3, R6, #0;
-    ADD R6, R6, #2;
-
-    RTI
-
-USP         .FILL xFE00
-MASK        .FILL xFFFD
-START       .FILL x1000
-COUNTER     .FILL x0080'q':
+    case 'q':
 	printf("Bye.\n");
 	exit(0);
 
