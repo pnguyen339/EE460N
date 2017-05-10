@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">&#x0A;<refactoring comment="Rename resource &apos;Lab6/example0.hex&apos; to &apos;example0.obj&apos;" description="Rename resource &apos;example0.hex&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="example0.hex" name="example0.obj" stamp="1494382220711" updateReferences="true"/>&#x0A;<refactoring comment="Rename resource &apos;Lab6/example0.hex&apos; to &apos;example0.obj&apos;" description="Rename resource &apos;example0.hex&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="example0.hex" name="example0.obj" stamp="1494382497898" updateReferences="true"/>
+</session>
